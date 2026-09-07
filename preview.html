@@ -203,7 +203,23 @@
       overflow: auto;
       z-index: 20;
     }
-    .overlay-inner { max-width: var(--max); margin: 0 auto; padding: 24px; }
+    .overlay-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: max(16px, env(safe-area-inset-top)) 24px 40px;
+    }
+    .session-bar {
+      position: sticky;
+      top: 0;
+      z-index: 22;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 0 -8px 8px;
+      padding: 8px;
+      background: var(--bg);
+    }
     .player {
       position: relative;
       aspect-ratio: 16 / 9;
@@ -708,9 +724,9 @@
       const search = workout.searchQuery || `${workout.creatorLabel} ${workout.title}`;
       const yt = workout.youtubeId ? youtubeWatchUrl(workout.youtubeId) : youtubeSearchUrl(search);
       return `<div class="overlay"><div class="overlay-inner">
-        <div class="head">
-          <button class="btn-ghost" data-act="close-player">Close</button>
-          <button class="btn-sec" data-act="assign" data-id="${workout.id}">Put on a day</button>
+        <div class="session-bar">
+          <button type="button" data-act="close-player">Close</button>
+          <button type="button" class="btn-sec" data-act="assign" data-id="${workout.id}">Put on a day</button>
         </div>
         <div class="kicker">${esc(workout.creatorLabel)} · ${workout.minutes} min · ${esc(workout.equipment)}</div>
         <h1>${esc(workout.title)}</h1>
@@ -791,6 +807,13 @@
       readInputs();
       if (act === "tab") { stopTimer(); ui.active = null; ui.tab = id; render(); return; }
       if (act === "open" && id) { ui.effort = 3; ui.notes = ""; ui.active = findWorkout(id); render(); return; }
+      if (act === "close-player") {
+        stopTimer();
+        ui.active = null;
+        ui.sheet = null;
+        render();
+        return;
+      }
       if (act === "play-youtube") {
         const watch = youtubeWatchUrl(id || ui.active?.youtubeId);
         if (watch) window.open(watch, "_blank", "noopener");
