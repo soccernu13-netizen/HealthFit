@@ -18,7 +18,11 @@ git remote add origin https://github.com/soccernu13-netizen/HealthFit.git
 git add .
 git status
 echo.
-git commit -m "Add HealthFit workout and weight tracker."
+set GIT_AUTHOR_NAME=HealthFit
+set GIT_AUTHOR_EMAIL=soccernu13-netizen@users.noreply.github.com
+set GIT_COMMITTER_NAME=HealthFit
+set GIT_COMMITTER_EMAIL=soccernu13-netizen@users.noreply.github.com
+git commit -m "Update HealthFit. Personal logs stay on the device."
 if errorlevel 1 (
   echo If it said nothing to commit, the files may already be saved.
 )

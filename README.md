@@ -2,7 +2,7 @@
 
 Home workout and weight tracker. About 15 minutes a day, with bodyweight or light dumbbells.
 
-Your name, weight history, and workout log are stored only in the browser you use. They are not part of this GitHub project.
+Your name, weight history, and workout log are stored only in the browser on that phone or computer. They are not uploaded to GitHub and they do not sync between devices.
 
 ## On your phone
 

@@ -467,6 +467,12 @@
     const ui = { tab: "today", active: null, sheet: null, query: "", creator: "all", focus: "all", gearFilter: "all", effort: 3, notes: "", timer: null };
     const root = document.getElementById("app");
 
+    function storagePlace() {
+      if (/iPhone|iPod|Android.+Mobile/i.test(navigator.userAgent)) return "phone";
+      if (/iPad|Android/i.test(navigator.userAgent)) return "tablet";
+      return "computer";
+    }
+    // Writes only to this browser. Nothing is sent to GitHub or another device.
     const persist = () => localStorage.setItem(KEY, JSON.stringify(state));
     const allWorkouts = () => [...state.customWorkouts, ...WORKOUTS];
     const findWorkout = (id) => allWorkouts().find((w) => w.id === id);
@@ -541,7 +547,7 @@
       return `<header class="topbar">
         <div>
           <div class="brand">Home<span>Fit</span></div>
-          <div class="note">Saved on this computer</div>
+          <div class="note">Saved on this ${storagePlace()} only</div>
         </div>
         <nav>${TABS.map(([id, label]) => `<button data-act="tab" data-id="${id}" class="${ui.tab === id ? "on" : ""}">${label}</button>`).join("")}</nav>
       </header>`;
@@ -672,6 +678,7 @@
           <div class="field"><label>Note</label><input id="w-note" placeholder="Morning, after workout…" /></div>
           <div class="actions"><button data-act="save-weight">Save weight</button></div>
         </div>
+        <p class="hint">Weigh-ins stay on this ${storagePlace()}. They are not uploaded.</p>
         <div class="card">
           <h3>History</h3>
           ${state.weights.length ? state.weights.map((entry) => `<div class="list-item"><div><h3>${esc(entry.date)}</h3><p class="muted" style="margin:4px 0 0">${esc(entry.note || "Logged")}</p></div><div>${displayWeight(entry.pounds, state.unit).toFixed(1)} ${state.unit}</div></div>`).join("") : `<p class="empty">No weigh-ins yet.</p>`}
@@ -679,7 +686,12 @@
     }
 
     function logPage() {
+      const place = storagePlace();
       return `<div class="kicker">Progress</div><h1>Workout log</h1>
+        <div class="card">
+          <h3>Stays on this ${place}</h3>
+          <p class="muted">Your name, weight, plan, and workout history are saved only in this browser on this ${place}. HealthFit does not upload them to GitHub or copy them to your computer.</p>
+        </div>
         <div class="card">
           <label>Name</label>
           <input id="name-input" value="${esc(state.name)}" placeholder="Optional" />
