@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "HomeFit",
+    "slug": "homefit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#071018",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.homefit.app",
+      "infoPlist": {
+        "UIStatusBarStyle": "UIStatusBarStyleLightContent"
+      }
+    },
+    "android": {
+      "package": "com.homefit.app"
+    },
+    "plugins": ["expo-web-browser"]
+  }
+}

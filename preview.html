@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="theme-color" content="#101214" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="HealthFit" />
+  <link rel="manifest" href="manifest.json" />
+  <title>HealthFit</title>
+  <style>
+    :root {
+      --bg: #101214;
+      --panel: #181b1f;
+      --panel-2: #1f2328;
+      --text: #eef1f3;
+      --muted: #8d949b;
+      --line: rgba(255,255,255,0.08);
+      --accent: #c2a36a;
+      --accent-ink: #1a160e;
+      --ok: #8fbf9a;
+      --radius: 12px;
+      --max: 880px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    button, .btn, input, textarea { font-family: inherit; }
+    button, .btn { cursor: pointer; }
+    a { color: inherit; }
+    .app { max-width: var(--max); margin: 0 auto; padding: 0 24px 48px; }
+    header.topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
+    .brand span { color: var(--accent); }
+    .note { color: var(--muted); font-size: 12px; }
+    nav {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: transparent;
+      color: var(--muted);
+      border: 0;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    nav button.on { background: var(--panel-2); color: var(--text); }
+    .page { padding: 28px 0 0; display: grid; gap: 18px; }
+    .split { display: grid; gap: 18px; }
+    @media (min-width: 800px) {
+      .split { grid-template-columns: 1.4fr 0.8fr; align-items: start; }
+    }
+    .kicker {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    h1 { font-size: 28px; font-weight: 650; letter-spacing: -0.03em; margin: 6px 0 0; }
+    h2 { font-size: 20px; font-weight: 650; margin: 0; }
+    h3 { font-size: 15px; font-weight: 650; margin: 0; }
+    .muted { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+    .hint { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .hero { padding: 22px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .stat span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .stat b { display: block; font-size: 22px; font-weight: 650; margin-top: 6px; }
+    .pill {
+      border: 1px solid var(--line);
+      color: var(--ok);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .actions, .row, .pair { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .actions { margin-top: 16px; }
+    .row { margin-top: 12px; }
+    .grow { flex: 1; min-width: 140px; }
+    button, .btn {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border: 0;
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 650;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-sec, .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .btn-ghost { color: var(--muted); }
+    input, textarea {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 15px;
+    }
+    textarea { min-height: 84px; padding: 10px 12px; resize: vertical; }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 6px;
+    }
+    .field { margin-top: 12px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    .plan-day {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      min-height: 64px;
+      padding: 12px 14px;
+      font-weight: 500;
+    }
+    .plan-today { border-color: var(--accent); }
+    .weekday { color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; }
+    .empty { color: var(--muted); text-align: center; padding: 28px 8px; }
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-item:last-child { border-bottom: 0; }
+    .done { color: var(--ok); font-weight: 650; }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      overflow: auto;
+      z-index: 20;
+    }
+    .overlay-inner { max-width: var(--max); margin: 0 auto; padding: 24px; }
+    .player {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      height: auto;
+      min-height: 280px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      margin-top: 14px;
+    }
+    .player iframe { width: 100%; height: 100%; border: 0; }
+    .video-poster {
+      display: grid;
+      place-items: center;
+    }
+    .video-poster img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 12, 0.42);
+      z-index: 1;
+    }
+    .play-btn {
+      position: relative;
+      z-index: 2;
+      min-width: 168px;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 10px;
+      margin: 0 0 12px;
+      background: #000;
+      display: block;
+    }
+    .player:fullscreen,
+    .player:-webkit-full-screen {
+      aspect-ratio: auto;
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      border-radius: 0;
+      margin: 0;
+      background: #000;
+    }
+    .timer { text-align: center; }
+    .phase { color: var(--accent); letter-spacing: 0.14em; font-weight: 700; text-transform: uppercase; font-size: 11px; }
+    .clock { font-size: 56px; font-weight: 650; letter-spacing: -0.04em; margin: 4px 0; font-variant-numeric: tabular-nums; }
+    .progress { height: 4px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin: 12px 0; }
+    .progress > div { height: 100%; background: var(--accent); width: 0; }
+    .effort { display: flex; gap: 8px; margin: 12px 0; }
+    .effort button {
+      flex: 1;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .effort button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 30; }
+    .sheet {
+      position: fixed;
+      left: 50%;
+      top: 12vh;
+      transform: translateX(-50%);
+      width: min(520px, calc(100% - 32px));
+      max-height: 76vh;
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 22px;
+      border-radius: var(--radius);
+      z-index: 31;
+    }
+    .stack { display: grid; gap: 10px; margin-top: 14px; }
+    .stack .btn, .stack button, .stack .btn-sec { width: 100%; }
+    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    button:focus-visible, .btn:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app"></div>
+  <script>
+    const CREATORS = [
+      { id: "you1stlondon", name: "You1stlondon", search: "You1stlondon home workout" },
+      { id: "sportif-fi", name: "Sportif Fi", search: "Sportif Fi workout" },
+      { id: "thefitcircuits", name: "Thefitcircuits", search: "FitCircuits Jackson Carey home workout" },
+      { id: "king-damian", name: "King Damian", search: "King Damian Fitness home workout" },
+      { id: "public-calisthenics", name: "Public calisthenics", search: "15 minute calisthenics workout no equipment follow along for men" },
+      { id: "dumbbell-strength", name: "Light dumbbells", search: "15 minute light dumbbell workout for men at home" },
+    ];
+    const move = (name, seconds = 40, restSeconds = 20) => ({ name, seconds, restSeconds });
+    const WORKOUTS = [
+      { id: "you1-abs-video", title: "10-minute abs at home", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 10, focus: "core", equipment: "Mat", kind: "video", youtubeId: "Qnifh7sMIkw", summary: "No-equipment core session. Pair with the 5-minute finisher to hit 15 minutes.", tags: "abs core", gear: "bodyweight" },
+      { id: "you1-core-finisher", title: "5-minute core finisher", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 5, focus: "core", equipment: "Mat", kind: "circuit", summary: "Add this after the abs video.", rounds: 1, moves: [move("Dead bug"), move("Side plank left"), move("Side plank right"), move("Hollow hold"), move("Glute bridge", 40, 0)], tags: "finisher", gear: "bodyweight" },
+      { id: "you1-full-body", title: "Beginner full body", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 15, focus: "full-body", equipment: "None", kind: "circuit", searchQuery: "You1stlondon beginner full body home workout", summary: "Push, squat, lunge, plank. Knees down on push-ups is fine.", rounds: 3, moves: [move("Push-ups"), move("Bodyweight squats"), move("Reverse lunges"), move("Plank"), move("Marching or jumping jacks")], tags: "full body", gear: "bodyweight" },
+      { id: "sportif-search", title: "Sportif Fi home search", creatorId: "sportif-fi", creatorLabel: "Sportif Fi", minutes: 15, focus: "full-body", equipment: "Varies", kind: "video", searchQuery: "Sportif Fi home workout for men", summary: "Opens YouTube results for Sportif Fi so you can save a session.", tags: "sportif", gear: "bodyweight" },
+      { id: "fit-hiit-1", title: "FitCircuits bodyweight HIIT", creatorId: "thefitcircuits", creatorLabel: "Thefitcircuits", minutes: 15, focus: "hiit", equipment: "None", kind: "circuit", youtubeId: "20_FnKBzY3I", summary: "Climbers, squat jumps, jacks, burpees, side lunges. Step instead of jump if needed.", rounds: 3, moves: [move("Mountain climbers"), move("Squat jumps or squats"), move("Jumping jacks"), move("Burpees or step-back burpees"), move("Side lunges")], tags: "hiit", gear: "bodyweight" },
+      { id: "fit-hiit-2", title: "FitCircuits full-body, no weights", creatorId: "thefitcircuits", creatorLabel: "Thefitcircuits", minutes: 15, focus: "full-body", equipment: "None", kind: "circuit", searchQuery: "Thefitcircuits full body HIIT no weights", summary: "A-skips, jacks, side crunches, squats, push-ups.", rounds: 3, moves: [move("A-skip or high knees"), move("Jumping jacks"), move("Standing side crunches"), move("Squats"), move("Push-ups")], tags: "hiit", gear: "bodyweight" },
+      { id: "king-abs", title: "King Damian HIIT abs", creatorId: "king-damian", creatorLabel: "King Damian", minutes: 15, focus: "core", equipment: "Mat", kind: "circuit", searchQuery: "King Damian Fitness HIIT abs no equipment", summary: "Short, intense core work. Three rounds.", rounds: 3, moves: [move("Sit-ups or crunches"), move("Flutter kicks"), move("Plank"), move("Mountain climbers"), move("Russian twists")], tags: "abs", gear: "bodyweight" },
+      { id: "king-push", title: "King Damian push-up challenge", creatorId: "king-damian", creatorLabel: "King Damian", minutes: 15, focus: "upper", equipment: "None", kind: "circuit", searchQuery: "King Damian Fitness push up workout", summary: "Chest, arms, and core. Drop to knees when form slips.", rounds: 3, moves: [move("Standard push-ups"), move("Wide push-ups"), move("Shoulder taps in plank"), move("Knee push-ups"), move("Forearm plank")], tags: "push", gear: "bodyweight" },
+      { id: "peto-beginner-15", title: "15-min beginner calisthenics", creatorId: "public-calisthenics", creatorLabel: "Tom Peto", minutes: 15, focus: "full-body", equipment: "Mat", kind: "video", youtubeId: "Jo1eWJ0YNnA", summary: "Follow-along beginner strength. No equipment.", tags: "calisthenics", gear: "bodyweight" },
+      { id: "peto-norepeat-15", title: "15-min no-repeat calisthenics", creatorId: "public-calisthenics", creatorLabel: "Tom Peto", minutes: 15, focus: "full-body", equipment: "Mat", kind: "video", youtubeId: "MwYgWvg2R9w", summary: "Beginner-friendly bodyweight strength. 40 seconds on, 20 off.", tags: "calisthenics", gear: "bodyweight" },
+      { id: "true-beginner-15", title: "True beginner calisthenics", creatorId: "public-calisthenics", creatorLabel: "Public calisthenics", minutes: 15, focus: "mobility", equipment: "Mat", kind: "video", youtubeId: "RoI7YUEwuIc", summary: "Gentle follow-along. Good Sunday option.", tags: "beginner", gear: "bodyweight" },
+      { id: "thenx-legs-15", title: "15-min home legs", creatorId: "public-calisthenics", creatorLabel: "THENX / Chris Heria", minutes: 15, focus: "lower", equipment: "None", kind: "video", youtubeId: "wB9ukMeQfjU", summary: "Squats, lunges, and lower-body work. No equipment.", tags: "legs", gear: "bodyweight" },
+      { id: "db-full-body-15", title: "Light-dumbbell full body", creatorId: "dumbbell-strength", creatorLabel: "Juice & Toya", minutes: 15, focus: "full-body", equipment: "Light dumbbells", kind: "video", youtubeId: "xqVBoyKXbsA", searchQuery: "15 minute light dumbbell full body workout for men at home", summary: "Follow-along full body with a pair of light dumbbells (about 10–25 lb). Go at your own pace.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-push-15", title: "Dumbbell push", creatorId: "dumbbell-strength", creatorLabel: "Juice & Toya", minutes: 15, focus: "upper", equipment: "Light dumbbells", kind: "video", youtubeId: "NDOlPdyZLMg", searchQuery: "15 minute dumbbell chest shoulder workout for men at home", summary: "Follow-along upper-body work: press, curls, and holds. Use a weight you can control.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-pull-15", title: "Dumbbell pull", creatorId: "dumbbell-strength", creatorLabel: "Juice & Toya", minutes: 15, focus: "upper", equipment: "Light dumbbells", kind: "video", youtubeId: "j-Wbu2HVU9A", searchQuery: "15 minute dumbbell back arm workout for men at home", summary: "Follow-along back and biceps. Start light on the first set, then add weight if form stays clean.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-legs-15", title: "Dumbbell legs", creatorId: "dumbbell-strength", creatorLabel: "Juice & Toya", minutes: 15, focus: "lower", equipment: "Light dumbbells", kind: "video", youtubeId: "Huq6i9gscrk", searchQuery: "15 minute light dumbbell leg workout for men at home", summary: "Follow-along squats, lunges, and hip work. Stay on level 1 if you only have one dumbbell.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-hiit-15", title: "Dumbbell strength HIIT", creatorId: "dumbbell-strength", creatorLabel: "Joe Wicks", minutes: 15, focus: "hiit", equipment: "Light dumbbells", kind: "video", youtubeId: "TRUBAdvsyNk", searchQuery: "15 minute dumbbell HIIT workout for men at home", summary: "Follow-along HIIT with light dumbbells. Step instead of jump if needed.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-core-15", title: "Weighted core", creatorId: "dumbbell-strength", creatorLabel: "Caroline Girvan", minutes: 15, focus: "core", equipment: "Light dumbbells", kind: "video", youtubeId: "mUI4hXTmAkw", searchQuery: "15 minute dumbbell abs workout for men at home", summary: "Follow-along core work with one light dumbbell. Keep the lower back quiet.", tags: "dumbbells", gear: "dumbbells" },
+    ];
+    const PLANS = {
+      bodyweight: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "peto-beginner-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "you1-abs-video" },
+        { weekday: 3, label: "Wed", focus: "HIIT", workoutId: "fit-hiit-1" },
+        { weekday: 4, label: "Thu", focus: "Legs", workoutId: "thenx-legs-15" },
+        { weekday: 5, label: "Fri", focus: "Calisthenics", workoutId: "peto-norepeat-15" },
+        { weekday: 6, label: "Sat", focus: "Push", workoutId: "king-push" },
+        { weekday: 0, label: "Sun", focus: "Easy", workoutId: "true-beginner-15" },
+      ],
+      dumbbells: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "db-full-body-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "db-core-15" },
+        { weekday: 3, label: "Wed", focus: "HIIT", workoutId: "db-hiit-15" },
+        { weekday: 4, label: "Thu", focus: "Legs", workoutId: "db-legs-15" },
+        { weekday: 5, label: "Fri", focus: "Pull", workoutId: "db-pull-15" },
+        { weekday: 6, label: "Sat", focus: "Push", workoutId: "db-push-15" },
+        { weekday: 0, label: "Sun", focus: "Easy", workoutId: "true-beginner-15" },
+      ],
+      both: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "db-full-body-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "you1-abs-video" },
+        { weekday: 3, label: "Wed", focus: "HIIT", workoutId: "fit-hiit-1" },
+        { weekday: 4, label: "Thu", focus: "Legs", workoutId: "db-legs-15" },
+        { weekday: 5, label: "Fri", focus: "Calisthenics", workoutId: "peto-norepeat-15" },
+        { weekday: 6, label: "Sat", focus: "Push", workoutId: "db-push-15" },
+        { weekday: 0, label: "Sun", focus: "Easy", workoutId: "true-beginner-15" },
+      ],
+    };
+    const GEAR_OPTIONS = [["both", "Bodyweight + dumbbells"], ["bodyweight", "Bodyweight only"], ["dumbbells", "Light dumbbells"]];
+    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const FOCUS_OPTIONS = [["all", "All"], ["full-body", "Full body"], ["core", "Core"], ["upper", "Upper"], ["lower", "Legs"], ["hiit", "HIIT"], ["mobility", "Easy"]];
+    const TABS = [["today", "Today"], ["plan", "Plan"], ["search", "Library"], ["weight", "Weight"], ["more", "Log"]];
+    const KEY = "homefit-preview-v2";
+
+    const uid = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const pad = (n) => String(n).padStart(2, "0");
+    const todayKey = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const kgToLb = (kg) => kg * 2.2046226218;
+    const lbToKg = (lb) => lb / 2.2046226218;
+    const displayWeight = (pounds, unit) => (unit === "lb" ? pounds : lbToKg(pounds));
+    const planForGear = (gear) => (PLANS[gear] || PLANS.both).map((day) => ({ ...day }));
+    const usesDumbbells = (w) => w?.gear === "dumbbells" || /dumbbell/i.test(w?.equipment || "");
+    const youtubeSearchUrl = (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+    function youtubeWatchUrl(id) { return `https://www.youtube.com/watch?v=${id}`; }
+    function youtubeEmbedUrl(id, extra = "") {
+      const params = `rel=0&modestbranding=1&playsinline=1&fs=1${extra}`;
+      return `https://www.youtube.com/embed/${id}?${params}`;
+    }
+    function youtubePosterUrl(id) { return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`; }
+    function videoStage(youtubeId) {
+      const watch = youtubeWatchUrl(youtubeId);
+      const poster = youtubePosterUrl(youtubeId);
+      const play = `<a class="btn play-btn" href="${watch}" target="_blank" rel="noopener">Play video</a>`;
+      if (location.protocol === "file:") {
+        return `<div class="player video-poster" id="video-stage">
+          <img src="${poster}" alt="Workout video">
+          ${play}
+        </div>
+        <p class="hint">Click Play video to watch on YouTube. A saved file cannot play YouTube inside this page.</p>`;
+      }
+      return `<div class="player" id="video-stage"><iframe src="${youtubeEmbedUrl(youtubeId)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+    }
+    const esc = (s) => String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    function streakCount(sessions) {
+      const days = new Set(sessions.map((s) => s.date));
+      let streak = 0;
+      const cursor = new Date();
+      if (!days.has(todayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+      while (days.has(todayKey(cursor))) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return streak;
+    }
+    function flattenCircuit(workout) {
+      const list = [];
+      for (let round = 1; round <= (workout.rounds || 1); round += 1) {
+        (workout.moves || []).forEach((item) => {
+          list.push({ name: item.name, seconds: item.seconds, rest: false, round });
+          if (item.restSeconds) list.push({ name: "Rest", seconds: item.restSeconds, rest: true, round });
+        });
+      }
+      return list;
+    }
+    function parseYoutubeId(input) {
+      const trimmed = String(input || "").trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+      try {
+        const url = new URL(trimmed);
+        const fromPath = url.hostname.includes("youtu.be") ? url.pathname.replace("/", "") : (url.pathname.match(/\/(embed|shorts)\/([a-zA-Z0-9_-]{11})/) || [])[2];
+        const id = url.searchParams.get("v") || fromPath;
+        return /^[a-zA-Z0-9_-]{11}$/.test(id || "") ? id : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+    function similarSearchQuery(workout) {
+      const focus = { "full-body": "full body strength", core: "abs core", upper: "chest shoulders arms", lower: "legs glutes", hiit: "HIIT", mobility: "beginner mobility" }[workout.focus] || "home workout";
+      const kit = usesDumbbells(workout) ? "light dumbbells" : "no equipment bodyweight";
+      return `${workout.minutes || 15} minute ${focus} ${kit} home workout follow along for men`;
+    }
+    function similarLibrary(workout, list) {
+      return list.filter((item) => item.id !== workout.id && item.id !== "you1-core-finisher" && item.focus === workout.focus && usesDumbbells(item) === usesDumbbells(workout)).slice(0, 4);
+    }
+    function matchesGear(workout, gear) {
+      if (gear === "both" || gear === "all") return true;
+      return gear === "dumbbells" ? usesDumbbells(workout) : !usesDumbbells(workout);
+    }
+    function customVideo(source, youtubeId, title) {
+      return {
+        id: `custom-${youtubeId}`,
+        title: title || `${source.title} (swap)`,
+        creatorId: source.creatorId || "public-calisthenics",
+        creatorLabel: "Saved video",
+        minutes: source.minutes || 15,
+        focus: source.focus || "full-body",
+        equipment: source.equipment || "Home",
+        kind: "video",
+        youtubeId,
+        gear: source.gear,
+        summary: "Saved from YouTube.",
+        tags: "saved youtube",
+      };
+    }
+
+    let state = { onboarded: true, unit: "lb", name: "", gear: "both", plan: planForGear("both"), customWorkouts: [], sessions: [], weights: [] };
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (saved) state = { ...state, ...saved, gear: saved.gear || "both", plan: saved.plan?.length === 7 ? saved.plan : planForGear(saved.gear || "both") };
+    } catch (_) {}
+
+    const ui = { tab: "today", active: null, sheet: null, query: "", creator: "all", focus: "all", gearFilter: "all", effort: 3, notes: "", timer: null };
+    const root = document.getElementById("app");
+
+    const persist = () => localStorage.setItem(KEY, JSON.stringify(state));
+    const allWorkouts = () => [...state.customWorkouts, ...WORKOUTS];
+    const findWorkout = (id) => allWorkouts().find((w) => w.id === id);
+    const sortedPlan = () => state.plan.slice().sort((a, b) => (a.weekday === 0 ? 7 : a.weekday) - (b.weekday === 0 ? 7 : b.weekday));
+    const weekdayFor = (id) => {
+      const today = new Date().getDay();
+      if (state.plan.find((d) => d.weekday === today)?.workoutId === id) return today;
+      return state.plan.find((d) => d.workoutId === id)?.weekday ?? today;
+    };
+    const placeOnDay = (weekday, workout) => {
+      if (workout.id.startsWith("custom-")) {
+        state.customWorkouts = [workout, ...state.customWorkouts.filter((w) => w.id !== workout.id)];
+      }
+      state.plan = state.plan.map((day) => (day.weekday === weekday ? { ...day, workoutId: workout.id } : day));
+    };
+
+    function stopTimer() {
+      if (ui.timer?.handle) clearInterval(ui.timer.handle);
+      ui.timer = null;
+    }
+    function timerView(workout) {
+      const steps = flattenCircuit(workout);
+      if (!ui.timer || ui.timer.id !== workout.id) ui.timer = { id: workout.id, index: 0, left: steps[0]?.seconds || 0, running: false, handle: null };
+      const step = steps[ui.timer.index];
+      if (!step) return "";
+      const done = ui.timer.index === steps.length - 1 && ui.timer.left === 0 && !ui.timer.running;
+      const total = steps.reduce((sum, item) => sum + item.seconds, 0) || 1;
+      const elapsed = steps.slice(0, ui.timer.index).reduce((sum, item) => sum + item.seconds, 0) + (step.seconds - ui.timer.left);
+      return `<div class="card timer" id="timer-card">
+        <div class="phase" id="timer-phase">${done ? "Finished" : step.rest ? "Rest" : "Round " + step.round}</div>
+        <div class="clock" id="timer-clock">${pad(Math.floor(ui.timer.left / 60))}:${pad(ui.timer.left % 60)}</div>
+        <h2 id="timer-name">${done ? "Session complete" : esc(step.name)}</h2>
+        <div class="progress"><div id="timer-bar" style="width:${Math.min(100, (elapsed / total) * 100)}%"></div></div>
+        <p class="muted" id="timer-meta">${ui.timer.index + 1} / ${steps.length} · ${workout.minutes} min</p>
+        <div class="actions">
+          <button data-act="timer-toggle" data-id="${workout.id}">${ui.timer.running ? "Pause" : "Start timer"}</button>
+          <button class="btn-sec" data-act="timer-skip" data-id="${workout.id}">Skip</button>
+        </div>
+      </div>`;
+    }
+    function paintTimer(workout) {
+      const card = document.getElementById("timer-card");
+      if (!card) return;
+      card.outerHTML = timerView(workout);
+    }
+    function runTimer(workout) {
+      const steps = flattenCircuit(workout);
+      if (ui.timer.handle) clearInterval(ui.timer.handle);
+      ui.timer.running = true;
+      ui.timer.handle = setInterval(() => {
+        if (ui.timer.left > 1) {
+          ui.timer.left -= 1;
+          paintTimer(workout);
+          return;
+        }
+        if (ui.timer.index >= steps.length - 1) {
+          ui.timer.running = false;
+          ui.timer.left = 0;
+          clearInterval(ui.timer.handle);
+          ui.timer.handle = null;
+          paintTimer(workout);
+          return;
+        }
+        ui.timer.index += 1;
+        ui.timer.left = steps[ui.timer.index].seconds;
+        paintTimer(workout);
+      }, 1000);
+      paintTimer(workout);
+    }
+
+    function header() {
+      return `<header class="topbar">
+        <div>
+          <div class="brand">Home<span>Fit</span></div>
+          <div class="note">Saved on this computer</div>
+        </div>
+        <nav>${TABS.map(([id, label]) => `<button data-act="tab" data-id="${id}" class="${ui.tab === id ? "on" : ""}">${label}</button>`).join("")}</nav>
+      </header>`;
+    }
+    function chips(items, current, act) {
+      return `<div class="chips">${items.map(([id, label]) => `<button class="chip ${current === id ? "on" : ""}" data-act="${act}" data-id="${id}">${label}</button>`).join("")}</div>`;
+    }
+
+    function todayPage() {
+      const weekday = new Date().getDay();
+      const todayPlan = state.plan.find((d) => d.weekday === weekday);
+      const workout = findWorkout(todayPlan?.workoutId);
+      const streak = streakCount(state.sessions);
+      const latest = state.weights[0];
+      const done = state.sessions.some((s) => s.date === todayKey());
+      return `
+        <div class="head">
+          <div>
+            <div class="kicker">${DAYS[weekday]} · ${esc(todayPlan?.focus || "")}</div>
+            <h1>${state.name ? `Hello, ${esc(state.name)}` : "Today"}</h1>
+          </div>
+          <div class="pill">${done ? "Completed" : `${streak}-day streak`}</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Streak</span><b>${streak}</b></div>
+          <div class="stat"><span>Sessions</span><b>${state.sessions.length}</b></div>
+          <div class="stat"><span>Weight</span><b>${latest ? `${displayWeight(latest.pounds, state.unit).toFixed(1)} ${state.unit}` : "—"}</b></div>
+        </div>
+        <div class="split">
+          ${workout ? `<div class="card hero">
+            ${workout.youtubeId ? `<img class="thumb" src="${youtubePosterUrl(workout.youtubeId)}" alt="">` : ""}
+            <div class="kicker">Today’s session</div>
+            <h2 style="margin-top:8px">${esc(workout.title)}</h2>
+            <p class="muted">${esc(workout.summary)}</p>
+            <div class="meta"><span class="badge">${workout.minutes} min</span><span class="badge">${esc(workout.creatorLabel)}</span><span class="badge">${esc(workout.equipment)}</span></div>
+            <div class="actions">
+              <button data-act="open" data-id="${workout.id}">Start</button>
+              <button class="btn-sec" data-act="tab" data-id="search">Browse library</button>
+              <button class="btn-ghost" data-act="swap" data-id="${workout.id}" data-day="${weekday}">Find a similar video</button>
+            </div>
+          </div>` : `<p class="empty">No workout assigned.</p>`}
+          <div class="card">
+            <h3>Quick weight</h3>
+            <p class="muted">Log today’s weigh-in. One entry per day.</p>
+            ${chips([["lb","lb"],["kg","kg"]], state.unit, "unit")}
+            <div class="row">
+              <input class="grow" id="quick-weight" placeholder="Weight in ${state.unit}" inputmode="decimal" />
+              <button data-act="save-quick">Save</button>
+            </div>
+            <div class="field">
+              <label>Equipment</label>
+              ${chips(GEAR_OPTIONS, state.gear, "gear")}
+              <p class="hint">Changing equipment loads a matching week. Logs stay.</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function planPage() {
+      const weekday = new Date().getDay();
+      return `<div class="kicker">Week</div><h1>15 minutes a day</h1>
+        ${sortedPlan().map((day) => {
+          const w = findWorkout(day.workoutId);
+          return `<button class="plan-day ${day.weekday === weekday ? "plan-today" : ""}" data-act="open" data-id="${w?.id || ""}">
+            <div class="weekday">${day.label}</div>
+            <div><h3>${esc(day.focus)}</h3><p class="muted" style="margin:4px 0 0">${esc(w?.title || "Choose a workout")}</p></div>
+            <span class="badge">${w?.minutes || 15}m</span>
+          </button>`;
+        }).join("")}
+        <button class="btn-ghost" data-act="reset-plan">Reset this week</button>`;
+    }
+
+    function searchPage() {
+      const q = ui.query.trim().toLowerCase();
+      const results = allWorkouts().filter((w) => {
+        if (w.id === "you1-core-finisher") return false;
+        const text = `${w.title} ${w.creatorLabel} ${w.tags} ${w.summary}`.toLowerCase();
+        return (ui.creator === "all" || w.creatorId === ui.creator)
+          && (ui.focus === "all" || w.focus === ui.focus)
+          && matchesGear(w, ui.gearFilter)
+          && (!q || text.includes(q));
+      });
+      const youtubeQ = ui.query.trim() || CREATORS.find((c) => c.id === ui.creator)?.search || "15 minute home workout for men";
+      return `<div class="kicker">Library</div><h1>Home workouts</h1>
+        <p class="muted">Strength, calisthenics, and short HIIT. For men and women training at home.</p>
+        <input id="search-q" value="${esc(ui.query)}" placeholder="Search abs, legs, dumbbells…" />
+        ${chips([["all","All gear"],["bodyweight","Bodyweight"],["dumbbells","Light dumbbells"]], ui.gearFilter, "gear-filter")}
+        ${chips([["all","All creators"], ...CREATORS.map((c) => [c.id, c.name])], ui.creator, "creator")}
+        ${chips(FOCUS_OPTIONS, ui.focus, "focus")}
+        <a class="btn btn-sec" href="${youtubeSearchUrl(youtubeQ)}" target="_blank" rel="noopener">Search YouTube</a>
+        <div class="card">
+          <h3>Save a YouTube workout</h3>
+          <div class="field"><input id="save-url" placeholder="https://youtube.com/watch?v=…" /></div>
+          <div class="field"><input id="save-title" placeholder="Session title" /></div>
+          <div class="actions"><button data-act="save-yt">Save and assign</button></div>
+        </div>
+        ${results.map((w) => `<div class="card">
+          ${w.youtubeId ? `<img class="thumb" src="${youtubePosterUrl(w.youtubeId)}" alt="">` : ""}
+          <h3>${esc(w.title)}</h3>
+          <p class="muted">${esc(w.summary)}</p>
+          <div class="meta"><span class="badge">${w.minutes} min</span><span class="badge">${esc(w.creatorLabel)}</span><span class="badge">${esc(w.equipment)}</span></div>
+          <div class="actions">
+            <button data-act="open" data-id="${w.id}">Open</button>
+            <button class="btn-sec" data-act="assign" data-id="${w.id}">Put on a day</button>
+          </div>
+        </div>`).join("")}
+        ${results.length ? "" : `<p class="empty">No matches. Search YouTube and paste a link.</p>`}`;
+    }
+
+    function weightPage() {
+      const latest = state.weights[0];
+      const weekDate = new Date();
+      weekDate.setDate(weekDate.getDate() - 7);
+      const oldestWeek = state.weights.find((w) => w.date <= todayKey(weekDate));
+      const change = latest && oldestWeek ? latest.pounds - oldestWeek.pounds : 0;
+      return `<div class="head">
+          <div><div class="kicker">Scale</div><h1>Weight log</h1></div>
+          ${chips([["lb","lb"],["kg","kg"]], state.unit, "unit")}
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Now</span><b>${latest ? displayWeight(latest.pounds, state.unit).toFixed(1) : "—"}</b></div>
+          <div class="stat"><span>7-day</span><b>${latest ? `${change >= 0 ? "+" : "−"}${displayWeight(Math.abs(change), state.unit).toFixed(1)}` : "—"}</b></div>
+          <div class="stat"><span>Entries</span><b>${state.weights.length}</b></div>
+        </div>
+        <div class="card">
+          <label>Weight (${state.unit})</label>
+          <input id="w-value" inputmode="decimal" />
+          <div class="field"><label>Note</label><input id="w-note" placeholder="Morning, after workout…" /></div>
+          <div class="actions"><button data-act="save-weight">Save weight</button></div>
+        </div>
+        <div class="card">
+          <h3>History</h3>
+          ${state.weights.length ? state.weights.map((entry) => `<div class="list-item"><div><h3>${esc(entry.date)}</h3><p class="muted" style="margin:4px 0 0">${esc(entry.note || "Logged")}</p></div><div>${displayWeight(entry.pounds, state.unit).toFixed(1)} ${state.unit}</div></div>`).join("") : `<p class="empty">No weigh-ins yet.</p>`}
+        </div>`;
+    }
+
+    function logPage() {
+      return `<div class="kicker">Progress</div><h1>Workout log</h1>
+        <div class="card">
+          <label>Name</label>
+          <input id="name-input" value="${esc(state.name)}" placeholder="Optional" />
+          <div class="actions"><button class="btn-sec" data-act="save-name">Save name</button></div>
+          <div class="field"><label>Equipment</label>${chips(GEAR_OPTIONS, state.gear, "gear")}</div>
+          <p class="hint">Light dumbbells are about 10–25 lb. Changing equipment resets the weekly plan, not your history.</p>
+        </div>
+        ${state.sessions.length ? state.sessions.map((s) => `<div class="card"><div class="head"><h3>${esc(s.title)}</h3><div class="done">${s.minutes} min</div></div><p class="muted">${esc(s.date)} · effort ${s.effort}/5</p>${s.notes ? `<p class="hint">${esc(s.notes)}</p>` : ""}</div>`).join("") : `<p class="empty">Complete a workout to see it here.</p>`}
+        <p class="hint">Home fitness tracker, not medical advice. Stop if anything hurts.</p>`;
+    }
+
+    function playerHtml(workout) {
+      const extra = workout.id === "you1-abs-video" ? findWorkout("you1-core-finisher") : null;
+      const search = workout.searchQuery || `${workout.creatorLabel} ${workout.title}`;
+      const yt = workout.youtubeId ? youtubeWatchUrl(workout.youtubeId) : youtubeSearchUrl(search);
+      return `<div class="overlay"><div class="overlay-inner">
+        <div class="head">
+          <button class="btn-ghost" data-act="close-player">Close</button>
+          <button class="btn-sec" data-act="assign" data-id="${workout.id}">Put on a day</button>
+        </div>
+        <div class="kicker">${esc(workout.creatorLabel)} · ${workout.minutes} min · ${esc(workout.equipment)}</div>
+        <h1>${esc(workout.title)}</h1>
+        <p class="muted">${esc(workout.summary)}</p>
+        ${workout.youtubeId ? videoStage(workout.youtubeId) : `<p class="muted">This session is a timed circuit. There is no video in-app. Open YouTube if you want a follow-along.</p>`}
+        <div class="actions">
+          ${workout.youtubeId ? `<a class="btn" href="${youtubeWatchUrl(workout.youtubeId)}" target="_blank" rel="noopener">Play video</a>` : ""}
+          <a class="btn btn-sec" href="${yt}" target="_blank" rel="noopener">${workout.youtubeId ? "Open in YouTube" : "Find a video on YouTube"}</a>
+          <button class="btn-ghost" data-act="swap" data-id="${workout.id}">Find a similar video</button>
+        </div>
+        ${workout.kind === "circuit" && workout.moves ? timerView(workout) : ""}
+        ${extra ? `<div class="card"><h3>Make it 15 minutes</h3><p class="muted">${esc(extra.title)}. Run this after the video.</p></div>${timerView(extra)}` : ""}
+        <div class="card">
+          <h3>Mark complete</h3>
+          <p class="muted">How hard was it?</p>
+          <div class="effort">${[1,2,3,4,5].map((n) => `<button data-act="effort" data-n="${n}" class="${ui.effort === n ? "on" : ""}">${n}</button>`).join("")}</div>
+          <textarea id="notes" placeholder="Knee push-ups, felt good…">${esc(ui.notes)}</textarea>
+          <div class="actions"><button data-act="complete">Save workout</button></div>
+        </div>
+      </div></div>`;
+    }
+
+    function sheetHtml() {
+      if (!ui.sheet) return "";
+      if (ui.sheet.type === "assign") {
+        const workout = ui.sheet.workout;
+        return `<div class="sheet-bg" data-act="close-sheet"></div>
+          <div class="sheet">
+            <h2>Add to a day</h2>
+            <p class="muted">${esc(workout.title)}</p>
+            <div class="stack">${sortedPlan().map((day) => `<button class="btn-sec" data-act="pick-day" data-day="${day.weekday}">${day.label} · ${esc(day.focus)}</button>`).join("")}
+            <button class="btn-ghost" data-act="close-sheet">Cancel</button></div>
+          </div>`;
+      }
+      const workout = ui.sheet.workout;
+      const similar = similarLibrary(workout, allWorkouts());
+      return `<div class="sheet-bg" data-act="close-sheet"></div>
+        <div class="sheet">
+          <h2>Find a similar video</h2>
+          <p class="muted">Replace ${esc(workout.title)} with another ${workout.minutes}-minute ${usesDumbbells(workout) ? "dumbbell" : "bodyweight"} session.</p>
+          <div class="stack">
+            <a class="btn" href="${youtubeSearchUrl(similarSearchQuery(workout))}" target="_blank" rel="noopener">Search YouTube for one like this</a>
+          </div>
+          <div class="field"><label>Paste the YouTube link</label><input id="swap-url" placeholder="https://youtube.com/watch?v=…" /></div>
+          <div class="actions"><button data-act="swap-paste">Use this video</button></div>
+          ${similar.length ? `<h3 style="margin-top:18px">Already in HomeFit</h3><div class="stack">${similar.map((w) => `<button class="btn-sec" data-act="swap-pick" data-id="${w.id}">${esc(w.title)} · ${w.minutes} min</button>`).join("")}</div>` : ""}
+          <div class="actions"><button class="btn-ghost" data-act="close-sheet">Keep this one</button></div>
+        </div>`;
+    }
+
+    function readInputs() {
+      const notes = document.getElementById("notes");
+      if (notes) ui.notes = notes.value;
+      const q = document.getElementById("search-q");
+      if (q) ui.query = q.value;
+    }
+
+    function render() {
+      persist();
+      const pages = { today: todayPage, plan: planPage, search: searchPage, weight: weightPage, more: logPage };
+      root.innerHTML = `${header()}<div class="page">${pages[ui.tab]()}</div>${ui.active ? playerHtml(ui.active) : ""}${sheetHtml()}`;
+    }
+
+    function saveWeight(raw, note) {
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n <= 0) return;
+      const pounds = state.unit === "lb" ? n : kgToLb(n);
+      const date = todayKey();
+      state.weights = [{ id: uid(), date, pounds, note: (note || "").trim() }, ...state.weights.filter((w) => w.date !== date)].sort((a, b) => b.date.localeCompare(a.date));
+      render();
+    }
+
+    root.addEventListener("click", (event) => {
+      const el = event.target.closest("[data-act]");
+      if (!el) return;
+      const act = el.dataset.act;
+      const id = el.dataset.id;
+      readInputs();
+      if (act === "tab") { stopTimer(); ui.active = null; ui.tab = id; render(); return; }
+      if (act === "open" && id) { ui.effort = 3; ui.notes = ""; ui.active = findWorkout(id); render(); return; }
+      if (act === "play-youtube") {
+        const watch = youtubeWatchUrl(id || ui.active?.youtubeId);
+        if (watch) window.open(watch, "_blank", "noopener");
+        return;
+      }
+      if (act === "fullscreen") {
+        const stage = document.getElementById("video-stage");
+        if (location.protocol === "file:" || !stage) {
+          const watch = youtubeWatchUrl(id || ui.active?.youtubeId);
+          if (watch) window.open(watch, "_blank", "noopener");
+          return;
+        }
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+          (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else if (stage.requestFullscreen) {
+          stage.requestFullscreen();
+        } else if (stage.webkitRequestFullscreen) {
+          stage.webkitRequestFullscreen();
+        }
+        return;
+      }
+      if (act === "assign") { ui.sheet = { type: "assign", workout: findWorkout(id) }; render(); return; }
+      if (act === "close-sheet") { ui.sheet = null; render(); return; }
+      if (act === "swap") {
+        const w = findWorkout(id);
+        ui.sheet = { type: "swap", workout: w, weekday: el.dataset.day !== undefined ? Number(el.dataset.day) : weekdayFor(w.id) };
+        render();
+        return;
+      }
+      if (act === "unit") { state.unit = id; render(); return; }
+      if (act === "gear") {
+        if (id === state.gear) return;
+        if (!confirm("Load a matching weekly plan? Your workout log and weight history stay.")) return;
+        state.gear = id;
+        state.plan = planForGear(id);
+        render();
+        return;
+      }
+      if (act === "gear-filter") { ui.gearFilter = id; render(); return; }
+      if (act === "creator") { ui.creator = id; render(); return; }
+      if (act === "focus") { ui.focus = id; render(); return; }
+      if (act === "reset-plan") { state.plan = planForGear(state.gear); render(); return; }
+      if (act === "save-name") { state.name = (document.getElementById("name-input")?.value || "").trim(); render(); return; }
+      if (act === "save-quick") { saveWeight(document.getElementById("quick-weight")?.value); return; }
+      if (act === "save-weight") { saveWeight(document.getElementById("w-value")?.value, document.getElementById("w-note")?.value); return; }
+      if (act === "save-yt") {
+        const youtubeId = parseYoutubeId(document.getElementById("save-url")?.value);
+        if (!youtubeId) { alert("Paste a full YouTube URL first."); return; }
+        const w = customVideo({ minutes: 15, focus: "full-body", equipment: "Home", gear: state.gear === "dumbbells" ? "dumbbells" : "bodyweight" }, youtubeId, (document.getElementById("save-title")?.value || "").trim());
+        state.customWorkouts = [w, ...state.customWorkouts.filter((x) => x.id !== w.id)];
+        ui.sheet = { type: "assign", workout: w };
+        render();
+        return;
+      }
+      if (act === "pick-day") {
+        placeOnDay(Number(el.dataset.day), ui.sheet.workout);
+        ui.sheet = null;
+        ui.tab = "plan";
+        render();
+        return;
+      }
+      if (act === "swap-paste") {
+        const youtubeId = parseYoutubeId(document.getElementById("swap-url")?.value);
+        if (!youtubeId) { alert("Paste a full YouTube URL first."); return; }
+        const w = customVideo(ui.sheet.workout, youtubeId);
+        placeOnDay(ui.sheet.weekday, w);
+        ui.active = w;
+        ui.sheet = null;
+        render();
+        return;
+      }
+      if (act === "swap-pick") {
+        const w = findWorkout(id);
+        placeOnDay(ui.sheet.weekday, w);
+        ui.active = w;
+        ui.sheet = null;
+        render();
+        return;
+      }
+      if (act === "effort") {
+        ui.effort = Number(el.dataset.n);
+        root.querySelectorAll("[data-act=effort]").forEach((btn) => btn.classList.toggle("on", Number(btn.dataset.n) === ui.effort));
+        return;
+      }
+      if (act === "complete" && ui.active) {
+        const extra = ui.active.id === "you1-abs-video" ? findWorkout("you1-core-finisher") : null;
+        state.sessions = [{ id: uid(), date: todayKey(), workoutId: ui.active.id, title: ui.active.title, minutes: ui.active.minutes + (extra?.minutes || 0), effort: ui.effort, notes: ui.notes.trim() }, ...state.sessions];
+        stopTimer();
+        ui.active = null;
+        ui.tab = "more";
+        render();
+        return;
+      }
+      if (act === "timer-toggle") {
+        const workout = findWorkout(id);
+        const steps = flattenCircuit(workout);
+        if (!ui.timer || ui.timer.id !== workout.id) ui.timer = { id: workout.id, index: 0, left: steps[0].seconds, running: false, handle: null };
+        if (ui.timer.running) {
+          clearInterval(ui.timer.handle);
+          ui.timer.handle = null;
+          ui.timer.running = false;
+          paintTimer(workout);
+        } else {
+          runTimer(workout);
+        }
+        return;
+      }
+      if (act === "timer-skip") {
+        const workout = findWorkout(id);
+        const steps = flattenCircuit(workout);
+        if (!ui.timer || ui.timer.id !== workout.id) ui.timer = { id: workout.id, index: 0, left: steps[0].seconds, running: false, handle: null };
+        ui.timer.index = Math.min(steps.length - 1, ui.timer.index + 1);
+        ui.timer.left = steps[ui.timer.index].seconds;
+        paintTimer(workout);
+      }
+    });
+
+    root.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      if (event.target.id === "quick-weight") { event.preventDefault(); saveWeight(event.target.value); }
+      if (event.target.id === "w-value" || event.target.id === "w-note") { event.preventDefault(); saveWeight(document.getElementById("w-value")?.value, document.getElementById("w-note")?.value); }
+      if (event.target.id === "search-q") { event.preventDefault(); ui.query = event.target.value; render(); }
+    });
+
+    render();
+  </script>
+</body>
+</html>
