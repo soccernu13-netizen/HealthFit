@@ -1,7 +1,8 @@
 {
   "name": "HealthFit",
   "short_name": "HealthFit",
-  "start_url": "preview.html",
+  "start_url": "./preview.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#101214",
   "theme_color": "#101214"

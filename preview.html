@@ -21,6 +21,7 @@
       --accent: #c2a36a;
       --accent-ink: #1a160e;
       --ok: #8fbf9a;
+      --warn: #d7b56d;
       --radius: 12px;
       --max: 880px;
     }
@@ -92,9 +93,15 @@
     }
     .hero { padding: 22px; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stats-2 { grid-template-columns: repeat(2, 1fr); }
     .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
     .stat span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
     .stat b { display: block; font-size: 22px; font-weight: 650; margin-top: 6px; }
+    .stat b.delta-lost, .delta-lost { color: var(--ok); }
+    .stat b.delta-gained, .delta-gained { color: var(--warn); }
+    .week-block + .week-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .week-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+    .file-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
     .pill {
       border: 1px solid var(--line);
       color: var(--ok);
@@ -381,6 +388,7 @@
     const FOCUS_OPTIONS = [["all", "All"], ["full-body", "Full body"], ["core", "Core"], ["upper", "Upper"], ["lower", "Legs"], ["hiit", "HIIT"], ["mobility", "Easy"]];
     const TABS = [["today", "Today"], ["plan", "Plan"], ["search", "Library"], ["weight", "Weight"], ["more", "Log"]];
     const KEY = "homefit-preview-v2";
+    const DB_NAME = "healthfit-device";
 
     const uid = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const pad = (n) => String(n).padStart(2, "0");
@@ -388,6 +396,23 @@
     const kgToLb = (kg) => kg * 2.2046226218;
     const lbToKg = (lb) => lb / 2.2046226218;
     const displayWeight = (pounds, unit) => (unit === "lb" ? pounds : lbToKg(pounds));
+    const parseDateKey = (key) => {
+      const [y, m, d] = String(key).split("-").map(Number);
+      return new Date(y, m - 1, d);
+    };
+    const addDaysKey = (key, days) => {
+      const date = parseDateKey(key);
+      date.setDate(date.getDate() + days);
+      return todayKey(date);
+    };
+    const weekStartKey = (key) => addDaysKey(key, -((parseDateKey(key).getDay() + 6) % 7));
+    const formatShort = (key) => parseDateKey(key).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const changeInfo = (deltaPounds, unit) => {
+      const amount = displayWeight(Math.abs(deltaPounds), unit).toFixed(1);
+      if (!Number.isFinite(deltaPounds) || Math.abs(deltaPounds) < 0.05) return { text: "No change", cls: "" };
+      if (deltaPounds < 0) return { text: `Lost ${amount} ${unit}`, cls: "delta-lost" };
+      return { text: `Gained ${amount} ${unit}`, cls: "delta-gained" };
+    };
     const planForGear = (gear) => (PLANS[gear] || PLANS.both).map((day) => ({ ...day }));
     const usesDumbbells = (w) => w?.gear === "dumbbells" || /dumbbell/i.test(w?.equipment || "");
     const youtubeSearchUrl = (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
@@ -474,11 +499,20 @@
       };
     }
 
-    let state = { onboarded: true, unit: "lb", name: "", gear: "both", plan: planForGear("both"), customWorkouts: [], sessions: [], weights: [] };
-    try {
-      const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-      if (saved) state = { ...state, ...saved, gear: saved.gear || "both", plan: saved.plan?.length === 7 ? saved.plan : planForGear(saved.gear || "both") };
-    } catch (_) {}
+    let state = { onboarded: true, unit: "lb", name: "", gear: "both", plan: planForGear("both"), customWorkouts: [], sessions: [], weights: [], stateUpdatedAt: 0 };
+    function applySaved(saved) {
+      if (!saved || typeof saved !== "object") return;
+      state = {
+        ...state,
+        ...saved,
+        gear: saved.gear || state.gear || "both",
+        plan: saved.plan?.length === 7 ? saved.plan : planForGear(saved.gear || state.gear || "both"),
+        weights: Array.isArray(saved.weights) ? saved.weights : state.weights,
+        sessions: Array.isArray(saved.sessions) ? saved.sessions : state.sessions,
+        customWorkouts: Array.isArray(saved.customWorkouts) ? saved.customWorkouts : state.customWorkouts,
+      };
+    }
+    try { applySaved(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (_) {}
 
     const ui = { tab: "today", active: null, sheet: null, query: "", creator: "all", focus: "all", gearFilter: "all", effort: 3, notes: "", timer: null };
     const root = document.getElementById("app");
@@ -488,8 +522,141 @@
       if (/iPad|Android/i.test(navigator.userAgent)) return "tablet";
       return "computer";
     }
-    // Writes only to this browser. Nothing is sent to GitHub or another device.
-    const persist = () => localStorage.setItem(KEY, JSON.stringify(state));
+    function dataScore(saved) {
+      if (!saved) return -1;
+      return (saved.weights?.length || 0) * 10 + (saved.sessions?.length || 0) * 10 + (saved.customWorkouts?.length || 0);
+    }
+    function pickRicher(a, b) {
+      if (!a) return b;
+      if (!b) return a;
+      const sa = dataScore(a);
+      const sb = dataScore(b);
+      if (sa === 0 && sb > 0) return b;
+      if (sb === 0 && sa > 0) return a;
+      const ta = a.stateUpdatedAt || 0;
+      const tb = b.stateUpdatedAt || 0;
+      if (ta !== tb) return tb > ta ? b : a;
+      return sb > sa ? b : a;
+    }
+    function idbGet() {
+      return new Promise((resolve) => {
+        try {
+          const open = indexedDB.open(DB_NAME, 1);
+          open.onupgradeneeded = () => open.result.createObjectStore("kv");
+          open.onerror = () => resolve(null);
+          open.onsuccess = () => {
+            const db = open.result;
+            const req = db.transaction("kv", "readonly").objectStore("kv").get(KEY);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          };
+        } catch (_) { resolve(null); }
+      });
+    }
+    function idbSet(value) {
+      return new Promise((resolve) => {
+        try {
+          const open = indexedDB.open(DB_NAME, 1);
+          open.onupgradeneeded = () => open.result.createObjectStore("kv");
+          open.onerror = () => resolve();
+          open.onsuccess = () => {
+            const db = open.result;
+            const tx = db.transaction("kv", "readwrite");
+            tx.objectStore("kv").put(value, KEY);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+          };
+        } catch (_) { resolve(); }
+      });
+    }
+    let storageReady = false;
+    // Writes only to this phone/computer. Nothing is sent to GitHub.
+    function persist() {
+      state.stateUpdatedAt = Date.now();
+      const copy = JSON.parse(JSON.stringify(state));
+      try { localStorage.setItem(KEY, JSON.stringify(copy)); } catch (_) {}
+      if (!storageReady) return;
+      idbSet(copy);
+    }
+    async function hydrateFromDevice() {
+      const snapshot = JSON.parse(JSON.stringify(state));
+      const fromIdb = await idbGet();
+      let fromLs = null;
+      try { fromLs = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (_) {}
+      const best = pickRicher(fromLs, fromIdb);
+      if (best) applySaved(best);
+      if (dataScore(snapshot) > 0) mergeIncoming(snapshot);
+      storageReady = true;
+      persist();
+      render();
+    }
+    function weeklyWeightGroups() {
+      const groups = new Map();
+      [...state.weights].sort((a, b) => a.date.localeCompare(b.date)).forEach((entry) => {
+        const start = weekStartKey(entry.date);
+        if (!groups.has(start)) groups.set(start, []);
+        groups.get(start).push(entry);
+      });
+      const starts = [...groups.keys()].sort((a, b) => b.localeCompare(a));
+      const thisWeek = weekStartKey(todayKey());
+      return starts.map((start, index) => {
+        const entries = groups.get(start);
+        const first = entries[0];
+        const last = entries[entries.length - 1];
+        const prev = index + 1 < starts.length ? groups.get(starts[index + 1]) : null;
+        const prevLast = prev ? prev[prev.length - 1] : null;
+        return {
+          start,
+          end: addDaysKey(start, 6),
+          entries: [...entries].reverse(),
+          first,
+          last,
+          inWeek: last.pounds - first.pounds,
+          vsPrevWeek: prevLast ? last.pounds - prevLast.pounds : null,
+          isThisWeek: start === thisWeek,
+        };
+      });
+    }
+    function thisWeekWeight() {
+      return weeklyWeightGroups().find((week) => week.isThisWeek) || null;
+    }
+    function previousWeighIn(date) {
+      return [...state.weights].filter((entry) => entry.date < date).sort((a, b) => b.date.localeCompare(a.date))[0];
+    }
+    function mergeIncoming(incoming) {
+      const weightMap = new Map(state.weights.map((entry) => [entry.date, entry]));
+      (incoming.weights || []).forEach((entry) => {
+        if (!entry?.date || !Number.isFinite(Number(entry.pounds))) return;
+        const current = weightMap.get(entry.date);
+        if (!current || (entry.savedAt || 0) >= (current.savedAt || 0)) weightMap.set(entry.date, entry);
+      });
+      state.weights = [...weightMap.values()].sort((a, b) => b.date.localeCompare(a.date));
+      const sessions = new Map(state.sessions.map((entry) => [entry.id, entry]));
+      (incoming.sessions || []).forEach((entry) => { if (entry?.id && !sessions.has(entry.id)) sessions.set(entry.id, entry); });
+      state.sessions = [...sessions.values()].sort((a, b) => b.date.localeCompare(a.date));
+      const custom = new Map(state.customWorkouts.map((entry) => [entry.id, entry]));
+      (incoming.customWorkouts || []).forEach((entry) => { if (entry?.id) custom.set(entry.id, { ...custom.get(entry.id), ...entry }); });
+      state.customWorkouts = [...custom.values()];
+      if (incoming.name && !state.name) state.name = incoming.name;
+      if (incoming.unit) state.unit = incoming.unit;
+      if (incoming.gear) state.gear = incoming.gear;
+      if (incoming.plan?.length === 7) state.plan = incoming.plan;
+    }
+    async function exportBackup() {
+      const payload = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), state }, null, 2);
+      const file = new File([payload], `healthfit-backup-${todayKey()}.json`, { type: "application/json" });
+      try {
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: "HealthFit backup" });
+          return;
+        }
+      } catch (_) {}
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(file);
+      link.download = file.name;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
     const allWorkouts = () => [...state.customWorkouts, ...WORKOUTS];
     const findWorkout = (id) => allWorkouts().find((w) => w.id === id);
     const sortedPlan = () => state.plan.slice().sort((a, b) => (a.weekday === 0 ? 7 : a.weekday) - (b.weekday === 0 ? 7 : b.weekday));
@@ -578,6 +745,8 @@
       const workout = findWorkout(todayPlan?.workoutId);
       const streak = streakCount(state.sessions);
       const latest = state.weights[0];
+      const week = thisWeekWeight();
+      const weekChange = week ? changeInfo(week.vsPrevWeek != null ? week.vsPrevWeek : week.inWeek, state.unit) : null;
       const done = state.sessions.some((s) => s.date === todayKey());
       return `
         <div class="head">
@@ -607,7 +776,8 @@
           </div>` : `<p class="empty">No workout assigned.</p>`}
           <div class="card">
             <h3>Quick weight</h3>
-            <p class="muted">Log today’s weigh-in. One entry per day.</p>
+            <p class="muted">Log today’s weigh-in. One entry per day. Weeks start Monday.</p>
+            ${weekChange ? `<p class="${weekChange.cls}" style="margin:8px 0 0">${week.isThisWeek && week.vsPrevWeek != null ? "Vs last week: " : "This week: "}${esc(weekChange.text)}</p>` : `<p class="hint">Log two weeks to see weight lost or gained per week.</p>`}
             ${chips([["lb","lb"],["kg","kg"]], state.unit, "unit")}
             <div class="row">
               <input class="grow" id="quick-weight" placeholder="Weight in ${state.unit}" inputmode="decimal" />
@@ -675,17 +845,18 @@
 
     function weightPage() {
       const latest = state.weights[0];
-      const weekDate = new Date();
-      weekDate.setDate(weekDate.getDate() - 7);
-      const oldestWeek = state.weights.find((w) => w.date <= todayKey(weekDate));
-      const change = latest && oldestWeek ? latest.pounds - oldestWeek.pounds : 0;
+      const weeks = weeklyWeightGroups();
+      const thisWeek = weeks.find((week) => week.isThisWeek);
+      const inWeek = thisWeek ? changeInfo(thisWeek.inWeek, state.unit) : null;
+      const vsLast = thisWeek?.vsPrevWeek != null ? changeInfo(thisWeek.vsPrevWeek, state.unit) : null;
       return `<div class="head">
           <div><div class="kicker">Scale</div><h1>Weight log</h1></div>
           ${chips([["lb","lb"],["kg","kg"]], state.unit, "unit")}
         </div>
-        <div class="stats">
-          <div class="stat"><span>Now</span><b>${latest ? displayWeight(latest.pounds, state.unit).toFixed(1) : "—"}</b></div>
-          <div class="stat"><span>7-day</span><b>${latest ? `${change >= 0 ? "+" : "−"}${displayWeight(Math.abs(change), state.unit).toFixed(1)}` : "—"}</b></div>
+        <div class="stats stats-2">
+          <div class="stat"><span>Now</span><b>${latest ? `${displayWeight(latest.pounds, state.unit).toFixed(1)} ${state.unit}` : "—"}</b></div>
+          <div class="stat"><span>This week</span><b class="${inWeek?.cls || ""}">${inWeek ? inWeek.text : "—"}</b></div>
+          <div class="stat"><span>Vs last week</span><b class="${vsLast?.cls || ""}">${vsLast ? vsLast.text : "—"}</b></div>
           <div class="stat"><span>Entries</span><b>${state.weights.length}</b></div>
         </div>
         <div class="card">
@@ -693,11 +864,28 @@
           <input id="w-value" inputmode="decimal" />
           <div class="field"><label>Note</label><input id="w-note" placeholder="Morning, after workout…" /></div>
           <div class="actions"><button data-act="save-weight">Save weight</button></div>
+          ${vsLast || inWeek ? `<p class="hint">${vsLast ? `After this log, vs last week: ${esc(vsLast.text)}. ` : ""}Inside this week: ${esc(inWeek ? inWeek.text : "needs a second weigh-in")}.</p>` : `<p class="hint">Save a weigh-in this week and last week to see weight lost per week.</p>`}
         </div>
         <p class="hint">Weigh-ins stay on this ${storagePlace()}. They are not uploaded.</p>
         <div class="card">
-          <h3>History</h3>
-          ${state.weights.length ? state.weights.map((entry) => `<div class="list-item"><div><h3>${esc(entry.date)}</h3><p class="muted" style="margin:4px 0 0">${esc(entry.note || "Logged")}</p></div><div>${displayWeight(entry.pounds, state.unit).toFixed(1)} ${state.unit}</div></div>`).join("") : `<p class="empty">No weigh-ins yet.</p>`}
+          <h3>By week</h3>
+          <p class="muted">Monday–Sunday. “Vs last week” compares this week’s latest weigh-in to last week’s latest.</p>
+          ${weeks.length ? weeks.map((week) => {
+            const headline = week.vsPrevWeek != null ? changeInfo(week.vsPrevWeek, state.unit) : changeInfo(week.inWeek, state.unit);
+            const inside = changeInfo(week.inWeek, state.unit);
+            return `<div class="week-block">
+              <div class="week-head">
+                <h3>${week.isThisWeek ? "This week" : `${formatShort(week.start)} – ${formatShort(week.end)}`}</h3>
+                <div class="${headline.cls}">${esc(headline.text)}</div>
+              </div>
+              <p class="hint">${week.vsPrevWeek != null ? `Vs last week: ${esc(changeInfo(week.vsPrevWeek, state.unit).text)} · ` : ""}In week: ${esc(inside.text)} · ${week.entries.length} weigh-in${week.entries.length === 1 ? "" : "s"}</p>
+              ${week.entries.map((entry) => {
+                const prior = previousWeighIn(entry.date);
+                const vsPrior = prior ? changeInfo(entry.pounds - prior.pounds, state.unit) : null;
+                return `<div class="list-item"><div><h3>${esc(entry.date)}</h3><p class="muted" style="margin:4px 0 0">${esc(entry.note || "Logged")}${vsPrior ? ` · ${vsPrior.text} since ${prior.date}` : ""}</p></div><div>${displayWeight(entry.pounds, state.unit).toFixed(1)} ${state.unit}</div></div>`;
+              }).join("")}
+            </div>`;
+          }).join("") : `<p class="empty">No weigh-ins yet.</p>`}
         </div>`;
     }
 
@@ -707,6 +895,12 @@
         <div class="card">
           <h3>Stays on this ${place}</h3>
           <p class="muted">Your name, weight, plan, and workout history are saved only in this browser on this ${place}. HealthFit does not upload them to GitHub or copy them to your computer.</p>
+          <p class="hint">On iPhone, use Share → Add to Home Screen so Safari is less likely to erase the log. You can also keep a backup file on this phone.</p>
+          <div class="actions">
+            <button class="btn-sec" data-act="backup-save">Save backup on this phone</button>
+            <button class="btn-ghost" data-act="backup-pick">Restore backup</button>
+          </div>
+          <input id="restore-file" class="file-hidden" type="file" accept="application/json,.json" />
         </div>
         <div class="card">
           <label>Name</label>
@@ -795,7 +989,8 @@
       if (!Number.isFinite(n) || n <= 0) return;
       const pounds = state.unit === "lb" ? n : kgToLb(n);
       const date = todayKey();
-      state.weights = [{ id: uid(), date, pounds, note: (note || "").trim() }, ...state.weights.filter((w) => w.date !== date)].sort((a, b) => b.date.localeCompare(a.date));
+      state.weights = [{ id: uid(), date, pounds, note: (note || "").trim(), savedAt: Date.now() }, ...state.weights.filter((w) => w.date !== date)].sort((a, b) => b.date.localeCompare(a.date));
+      ui.tab = "weight";
       render();
     }
 
@@ -857,6 +1052,8 @@
       if (act === "focus") { ui.focus = id; render(); return; }
       if (act === "reset-plan") { state.plan = planForGear(state.gear); render(); return; }
       if (act === "save-name") { state.name = (document.getElementById("name-input")?.value || "").trim(); render(); return; }
+      if (act === "backup-save") { exportBackup(); return; }
+      if (act === "backup-pick") { document.getElementById("restore-file")?.click(); return; }
       if (act === "save-quick") { saveWeight(document.getElementById("quick-weight")?.value); return; }
       if (act === "save-weight") { saveWeight(document.getElementById("w-value")?.value, document.getElementById("w-note")?.value); return; }
       if (act === "save-yt") {
@@ -931,6 +1128,29 @@
       }
     });
 
+    root.addEventListener("change", (event) => {
+      if (event.target.id !== "restore-file") return;
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || ""));
+          const incoming = parsed.state || parsed;
+          if (!incoming || typeof incoming !== "object") throw new Error("bad backup");
+          if (!confirm("Add this backup to this phone? Existing workouts and weigh-ins are kept. A same-day weigh-in in the file replaces that day.")) return;
+          mergeIncoming(incoming);
+          persist();
+          ui.tab = "weight";
+          render();
+        } catch (_) {
+          alert("Could not read that backup file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
     root.addEventListener("keydown", (event) => {
       if (event.key !== "Enter") return;
       if (event.target.id === "quick-weight") { event.preventDefault(); saveWeight(event.target.value); }
@@ -939,6 +1159,11 @@
     });
 
     render();
+    hydrateFromDevice();
+    if (location.protocol === "https:") {
+      navigator.storage?.persist?.();
+      navigator.serviceWorker?.register("./sw.js").catch(() => {});
+    }
   </script>
 </body>
 </html>
