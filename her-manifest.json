@@ -1,0 +1,9 @@
+{
+  "name": "HerFit",
+  "short_name": "HerFit",
+  "start_url": "./preview.html?for=her",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141116",
+  "theme_color": "#141116"
+}

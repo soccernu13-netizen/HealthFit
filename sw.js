@@ -1,7 +1,7 @@
-const CACHE = "healthfit-v4";
+const CACHE = "healthfit-v5";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(["./", "./preview.html", "./manifest.json"])));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(["./", "./preview.html", "./her.html", "./manifest.json", "./her-manifest.json"])));
   self.skipWaiting();
 });
 

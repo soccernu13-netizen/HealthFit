@@ -10,6 +10,9 @@
   <meta name="apple-mobile-web-app-title" content="HealthFit" />
   <link rel="manifest" href="manifest.json" />
   <title>HealthFit</title>
+  <script>
+    window.HEALTHFIT_FOR = new URLSearchParams(location.search).get("for") === "her" ? "her" : "him";
+  </script>
   <style>
     :root {
       --bg: #101214;
@@ -24,6 +27,13 @@
       --warn: #d7b56d;
       --radius: 12px;
       --max: 880px;
+    }
+    html.her {
+      --bg: #141116;
+      --panel: #1c181b;
+      --panel-2: #251f23;
+      --accent: #d4a0b0;
+      --accent-ink: #1a1216;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
@@ -67,7 +77,10 @@
       font-size: 13px;
       font-weight: 600;
     }
-    nav button.on { background: var(--panel-2); color: var(--text); }
+    html.her nav button {
+      padding: 0 8px;
+      font-size: 12px;
+    }
     .page { padding: 28px 0 0; display: grid; gap: 18px; }
     .split { display: grid; gap: 18px; }
     @media (min-width: 800px) {
@@ -325,7 +338,18 @@
 <body>
   <div class="app" id="app"></div>
   <script>
-    const CREATORS = [
+    const FOR_HER = window.HEALTHFIT_FOR === "her";
+    if (FOR_HER) {
+      document.documentElement.classList.add("her");
+      document.title = "HerFit";
+      const titleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (titleMeta) titleMeta.content = "HerFit";
+      const man = document.querySelector('link[rel="manifest"]');
+      if (man) man.href = "her-manifest.json";
+      const theme = document.querySelector('meta[name="theme-color"]');
+      if (theme) theme.content = "#141116";
+    }
+    const HIM_CREATORS = [
       { id: "you1stlondon", name: "You1stlondon", search: "You1stlondon home workout" },
       { id: "sportif-fi", name: "Sportif Fi", search: "Sportif Fi workout" },
       { id: "thefitcircuits", name: "Thefitcircuits", search: "FitCircuits Jackson Carey home workout" },
@@ -334,8 +358,8 @@
       { id: "dumbbell-strength", name: "Light dumbbells", search: "15 minute light dumbbell workout for men at home" },
     ];
     const move = (name, seconds = 40, restSeconds = 20) => ({ name, seconds, restSeconds });
-    const WORKOUTS = [
-      { id: "you1-abs-video", title: "10-minute abs at home", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 10, focus: "core", equipment: "Mat", kind: "video", youtubeId: "Qnifh7sMIkw", summary: "No-equipment core session. Pair with the 5-minute finisher to hit 15 minutes.", tags: "abs core", gear: "bodyweight" },
+    const HIM_WORKOUTS = [
+      { id: "you1-abs-video", title: "10-minute abs at home", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 10, focus: "core", equipment: "Mat", kind: "video", youtubeId: "Qnifh7sMIkw", finisherId: "you1-core-finisher", summary: "No-equipment core session. Pair with the 5-minute finisher to hit 15 minutes.", tags: "abs core", gear: "bodyweight" },
       { id: "you1-core-finisher", title: "5-minute core finisher", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 5, focus: "core", equipment: "Mat", kind: "circuit", summary: "Add this after the abs video.", rounds: 1, moves: [move("Dead bug"), move("Side plank left"), move("Side plank right"), move("Hollow hold"), move("Glute bridge", 40, 0)], tags: "finisher", gear: "bodyweight" },
       { id: "you1-full-body", title: "Beginner full body", creatorId: "you1stlondon", creatorLabel: "You1stlondon", minutes: 15, focus: "full-body", equipment: "None", kind: "circuit", searchQuery: "You1stlondon beginner full body home workout", summary: "Push, squat, lunge, plank. Knees down on push-ups is fine.", rounds: 3, moves: [move("Push-ups"), move("Bodyweight squats"), move("Reverse lunges"), move("Plank"), move("Marching or jumping jacks")], tags: "full body", gear: "bodyweight" },
       { id: "sportif-search", title: "Sportif Fi home search", creatorId: "sportif-fi", creatorLabel: "Sportif Fi", minutes: 15, focus: "full-body", equipment: "Varies", kind: "video", searchQuery: "Sportif Fi home workout for men", summary: "Opens YouTube results for Sportif Fi so you can save a session.", tags: "sportif", gear: "bodyweight" },
@@ -354,7 +378,7 @@
       { id: "db-hiit-15", title: "Dumbbell strength HIIT", creatorId: "dumbbell-strength", creatorLabel: "Joe Wicks", minutes: 15, focus: "hiit", equipment: "Light dumbbells", kind: "video", youtubeId: "TRUBAdvsyNk", searchQuery: "15 minute dumbbell HIIT workout for men at home", summary: "Follow-along HIIT with light dumbbells. Step instead of jump if needed.", tags: "dumbbells", gear: "dumbbells" },
       { id: "db-core-15", title: "Weighted core", creatorId: "dumbbell-strength", creatorLabel: "Caroline Girvan", minutes: 15, focus: "core", equipment: "Light dumbbells", kind: "video", youtubeId: "mUI4hXTmAkw", searchQuery: "15 minute dumbbell abs workout for men at home", summary: "Follow-along core work with one light dumbbell. Keep the lower back quiet.", tags: "dumbbells", gear: "dumbbells" },
     ];
-    const PLANS = {
+    const HIM_PLANS = {
       bodyweight: [
         { weekday: 1, label: "Mon", focus: "Full body", workoutId: "peto-beginner-15" },
         { weekday: 2, label: "Tue", focus: "Core", workoutId: "you1-abs-video" },
@@ -383,12 +407,71 @@
         { weekday: 0, label: "Sun", focus: "Easy", workoutId: "true-beginner-15" },
       ],
     };
+    const HER_CREATORS = [
+      { id: "growwithjo", name: "GrowwithJo", search: "GrowwithJo 15 minute indoor walking workout" },
+      { id: "madfit", name: "MadFit", search: "MadFit 15 minute beginner no jumping workout" },
+      { id: "movewithnicole", name: "Move with Nicole", search: "Move with Nicole 15 minute beginner pilates" },
+      { id: "emiwong", name: "Emi Wong", search: "Emi Wong standing abs home workout" },
+      { id: "heather-robertson", name: "Heather Robertson", search: "Heather Robertson low impact cardio no jumping" },
+      { id: "light-dumbbells", name: "Light dumbbells", search: "15 minute light dumbbell workout for women at home" },
+    ];
+    const HER_WORKOUTS = [
+      { id: "jo-walk-15", title: "15-min indoor walk", creatorId: "growwithjo", creatorLabel: "GrowwithJo", minutes: 15, focus: "cardio", equipment: "None", kind: "video", youtubeId: "Nc_NZ3PXhE8", searchQuery: "GrowwithJo 15 minute indoor walking workout", summary: "Light cardio you can do in place. No jumping. Walk at your own pace.", tags: "walk cardio", gear: "bodyweight" },
+      { id: "jo-walk-lunch", title: "15-min lunch-break walk", creatorId: "growwithjo", creatorLabel: "GrowwithJo", minutes: 15, focus: "cardio", equipment: "None", kind: "video", youtubeId: "NlVndT8-B5U", searchQuery: "GrowwithJo lunch break walking workout", summary: "Easy indoor walking cardio. Good for a busy day or Sunday.", tags: "walk cardio easy", gear: "bodyweight" },
+      { id: "madfit-beginner-15", title: "Beginner full body, no jumping", creatorId: "madfit", creatorLabel: "MadFit", minutes: 15, focus: "full-body", equipment: "Mat", kind: "video", youtubeId: "xCSaHRtgw1w", searchQuery: "MadFit 15 minute beginner full body no jumping", summary: "Gentle follow-along. Glutes, core, and arms. No repeats and no jumping.", tags: "beginner glutes", gear: "bodyweight" },
+      { id: "madfit-apartment-15", title: "Small-space full body", creatorId: "madfit", creatorLabel: "MadFit", minutes: 15, focus: "full-body", equipment: "Mat", kind: "video", youtubeId: "9PCGvkXV-Bo", searchQuery: "MadFit 15 minute apartment workout no jumping", summary: "Quiet, apartment-friendly strength. No jumping.", tags: "full body quiet", gear: "bodyweight" },
+      { id: "nicole-pilates-15", title: "15-min express pilates", creatorId: "movewithnicole", creatorLabel: "Move with Nicole", minutes: 15, focus: "mobility", equipment: "Mat", kind: "video", youtubeId: "MaQ7LZcS2ig", searchQuery: "Move with Nicole 15 minute express pilates beginner", summary: "Mat pilates for core, hips, and posture. Modifications are shown.", tags: "pilates mobility", gear: "bodyweight" },
+      { id: "emi-abs-10", title: "10-min standing abs", creatorId: "emiwong", creatorLabel: "Emi Wong", minutes: 10, focus: "core", equipment: "None", kind: "video", youtubeId: "QKCkO9fy9O4", finisherId: "her-core-finisher", searchQuery: "Emi Wong 10 minute standing abs no equipment", summary: "Standing core work. No mat needed. Pair with the 5-minute finisher.", tags: "abs standing", gear: "bodyweight" },
+      { id: "her-core-finisher", title: "5-minute easy core", creatorId: "emiwong", creatorLabel: "HerFit", minutes: 5, focus: "core", equipment: "Mat", kind: "circuit", summary: "Add this after standing abs.", rounds: 1, moves: [move("Glute bridge"), move("Bird dog"), move("Dead bug"), move("Standing march"), move("Pelvic tilt", 40, 0)], tags: "finisher", gear: "bodyweight" },
+      { id: "heather-cardio-20", title: "Low-impact cardio", creatorId: "heather-robertson", creatorLabel: "Heather Robertson", minutes: 20, focus: "cardio", equipment: "Mat", kind: "video", youtubeId: "cA11MYXhBfI", searchQuery: "Heather Robertson low impact cardio no jumping", summary: "Heart-rate work with no jumping. About 20 minutes. Step the pace down anytime.", tags: "cardio low impact", gear: "bodyweight" },
+      { id: "juice-low-impact-15", title: "Low-impact strength + cardio", creatorId: "light-dumbbells", creatorLabel: "Juice & Toya", minutes: 15, focus: "cardio", equipment: "None", kind: "video", youtubeId: "Z3R67XS1swE", searchQuery: "Juice and Toya 15 minute low impact HIIT no jumping women", summary: "Light cardio mixed with strength. Low impact, no equipment.", tags: "cardio hiit", gear: "bodyweight" },
+      { id: "db-her-full-15", title: "Light-dumbbell full body", creatorId: "light-dumbbells", creatorLabel: "Juice & Toya", minutes: 15, focus: "full-body", equipment: "Light dumbbells", kind: "video", youtubeId: "xqVBoyKXbsA", searchQuery: "15 minute light dumbbell full body workout for women at home", summary: "Follow-along with a pair of light dumbbells (about 3–12 lb). Stay on the easier level if you want.", tags: "dumbbells", gear: "dumbbells" },
+      { id: "db-her-legs-15", title: "Light-dumbbell legs & glutes", creatorId: "light-dumbbells", creatorLabel: "Juice & Toya", minutes: 15, focus: "lower", equipment: "Light dumbbells", kind: "video", youtubeId: "Huq6i9gscrk", searchQuery: "15 minute light dumbbell glute leg workout for women", summary: "Squats, lunges, and hip work. Level 1 uses one light dumbbell.", tags: "glutes dumbbells", gear: "dumbbells" },
+      { id: "db-her-arms-15", title: "Light-dumbbell arms & shoulders", creatorId: "light-dumbbells", creatorLabel: "Juice & Toya", minutes: 15, focus: "upper", equipment: "Light dumbbells", kind: "video", youtubeId: "NDOlPdyZLMg", searchQuery: "15 minute light dumbbell arm shoulder workout for women at home", summary: "Upper body with light weights. Use a load you can control for every rep.", tags: "arms dumbbells", gear: "dumbbells" },
+    ];
+    const HER_PLANS = {
+      bodyweight: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "madfit-beginner-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "emi-abs-10" },
+        { weekday: 3, label: "Wed", focus: "Cardio", workoutId: "jo-walk-15" },
+        { weekday: 4, label: "Thu", focus: "Glutes", workoutId: "madfit-apartment-15" },
+        { weekday: 5, label: "Fri", focus: "Pilates", workoutId: "nicole-pilates-15" },
+        { weekday: 6, label: "Sat", focus: "Light cardio", workoutId: "juice-low-impact-15" },
+        { weekday: 0, label: "Sun", focus: "Easy walk", workoutId: "jo-walk-lunch" },
+      ],
+      dumbbells: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "db-her-full-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "emi-abs-10" },
+        { weekday: 3, label: "Wed", focus: "Cardio", workoutId: "jo-walk-15" },
+        { weekday: 4, label: "Thu", focus: "Legs", workoutId: "db-her-legs-15" },
+        { weekday: 5, label: "Fri", focus: "Arms", workoutId: "db-her-arms-15" },
+        { weekday: 6, label: "Sat", focus: "Light cardio", workoutId: "heather-cardio-20" },
+        { weekday: 0, label: "Sun", focus: "Easy walk", workoutId: "jo-walk-lunch" },
+      ],
+      both: [
+        { weekday: 1, label: "Mon", focus: "Full body", workoutId: "madfit-beginner-15" },
+        { weekday: 2, label: "Tue", focus: "Core", workoutId: "emi-abs-10" },
+        { weekday: 3, label: "Wed", focus: "Cardio", workoutId: "jo-walk-15" },
+        { weekday: 4, label: "Thu", focus: "Legs", workoutId: "db-her-legs-15" },
+        { weekday: 5, label: "Fri", focus: "Pilates", workoutId: "nicole-pilates-15" },
+        { weekday: 6, label: "Sat", focus: "Light cardio", workoutId: "juice-low-impact-15" },
+        { weekday: 0, label: "Sun", focus: "Easy walk", workoutId: "jo-walk-lunch" },
+      ],
+    };
+    const CREATORS = FOR_HER ? HER_CREATORS : HIM_CREATORS;
+    const WORKOUTS = FOR_HER ? HER_WORKOUTS : HIM_WORKOUTS;
+    const PLANS = FOR_HER ? HER_PLANS : HIM_PLANS;
     const GEAR_OPTIONS = [["both", "Bodyweight + dumbbells"], ["bodyweight", "Bodyweight only"], ["dumbbells", "Light dumbbells"]];
     const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const FOCUS_OPTIONS = [["all", "All"], ["full-body", "Full body"], ["core", "Core"], ["upper", "Upper"], ["lower", "Legs"], ["hiit", "HIIT"], ["mobility", "Easy"]];
-    const TABS = [["today", "Today"], ["plan", "Plan"], ["search", "Library"], ["weight", "Weight"], ["more", "Log"]];
-    const KEY = "homefit-preview-v2";
-    const DB_NAME = "healthfit-device";
+    const FOCUS_OPTIONS = FOR_HER
+      ? [["all", "All"], ["full-body", "Full body"], ["core", "Core"], ["upper", "Arms"], ["lower", "Legs"], ["cardio", "Cardio"], ["mobility", "Pilates"]]
+      : [["all", "All"], ["full-body", "Full body"], ["core", "Core"], ["upper", "Upper"], ["lower", "Legs"], ["hiit", "HIIT"], ["mobility", "Easy"]];
+    const TABS = FOR_HER
+      ? [["today", "Today"], ["plan", "Plan"], ["search", "Library"], ["food", "Food"], ["weight", "Weight"], ["more", "Log"]]
+      : [["today", "Today"], ["plan", "Plan"], ["search", "Library"], ["weight", "Weight"], ["more", "Log"]];
+    const KEY = FOR_HER ? "herfit-preview-v1" : "homefit-preview-v2";
+    const DB_NAME = FOR_HER ? "herfit-device" : "healthfit-device";
+    const APP_NAME = FOR_HER ? "HerFit" : "HealthFit";
 
     const uid = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const pad = (n) => String(n).padStart(2, "0");
@@ -471,12 +554,13 @@
       }
     }
     function similarSearchQuery(workout) {
-      const focus = { "full-body": "full body strength", core: "abs core", upper: "chest shoulders arms", lower: "legs glutes", hiit: "HIIT", mobility: "beginner mobility" }[workout.focus] || "home workout";
-      const kit = usesDumbbells(workout) ? "light dumbbells" : "no equipment bodyweight";
-      return `${workout.minutes || 15} minute ${focus} ${kit} home workout follow along for men`;
+      const focus = { "full-body": "full body strength", core: "abs core", upper: "chest shoulders arms", lower: "legs glutes", hiit: "HIIT", cardio: "low impact walking cardio", mobility: FOR_HER ? "beginner pilates" : "beginner mobility" }[workout.focus] || "home workout";
+      const kit = usesDumbbells(workout) ? "light dumbbells" : "no equipment";
+      const who = FOR_HER ? "for women" : "for men";
+      return `${workout.minutes || 15} minute ${focus} ${kit} home workout follow along ${who}`;
     }
     function similarLibrary(workout, list) {
-      return list.filter((item) => item.id !== workout.id && item.id !== "you1-core-finisher" && item.focus === workout.focus && usesDumbbells(item) === usesDumbbells(workout)).slice(0, 4);
+      return list.filter((item) => item.id !== workout.id && !String(item.id).endsWith("-finisher") && item.focus === workout.focus && usesDumbbells(item) === usesDumbbells(workout)).slice(0, 4);
     }
     function matchesGear(workout, gear) {
       if (gear === "both" || gear === "all") return true;
@@ -486,7 +570,7 @@
       return {
         id: `custom-${youtubeId}`,
         title: title || `${source.title} (swap)`,
-        creatorId: source.creatorId || "public-calisthenics",
+        creatorId: source.creatorId || (FOR_HER ? "madfit" : "public-calisthenics"),
         creatorLabel: "Saved video",
         minutes: source.minutes || 15,
         focus: source.focus || "full-body",
@@ -499,7 +583,7 @@
       };
     }
 
-    let state = { onboarded: true, unit: "lb", name: "", gear: "both", plan: planForGear("both"), customWorkouts: [], sessions: [], weights: [], stateUpdatedAt: 0 };
+    let state = { onboarded: true, unit: "lb", name: "", gear: "both", plan: planForGear("both"), customWorkouts: [], sessions: [], weights: [], foods: [], calorieGoal: FOR_HER ? 1800 : 0, stateUpdatedAt: 0 };
     function applySaved(saved) {
       if (!saved || typeof saved !== "object") return;
       state = {
@@ -510,6 +594,8 @@
         weights: Array.isArray(saved.weights) ? saved.weights : state.weights,
         sessions: Array.isArray(saved.sessions) ? saved.sessions : state.sessions,
         customWorkouts: Array.isArray(saved.customWorkouts) ? saved.customWorkouts : state.customWorkouts,
+        foods: Array.isArray(saved.foods) ? saved.foods : state.foods,
+        calorieGoal: Number.isFinite(Number(saved.calorieGoal)) ? Number(saved.calorieGoal) : state.calorieGoal,
       };
     }
     try { applySaved(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (_) {}
@@ -524,7 +610,7 @@
     }
     function dataScore(saved) {
       if (!saved) return -1;
-      return (saved.weights?.length || 0) * 10 + (saved.sessions?.length || 0) * 10 + (saved.customWorkouts?.length || 0);
+      return (saved.weights?.length || 0) * 10 + (saved.sessions?.length || 0) * 10 + (saved.customWorkouts?.length || 0) + (saved.foods?.length || 0) * 10;
     }
     function pickRicher(a, b) {
       if (!a) return b;
@@ -620,6 +706,24 @@
     function thisWeekWeight() {
       return weeklyWeightGroups().find((week) => week.isThisWeek) || null;
     }
+    function foodsOn(date = todayKey()) {
+      return (state.foods || []).filter((entry) => entry.date === date);
+    }
+    function caloriesOn(date = todayKey()) {
+      return foodsOn(date).reduce((sum, entry) => sum + (Number(entry.calories) || 0), 0);
+    }
+    function foodDayGroups() {
+      const groups = new Map();
+      (state.foods || []).forEach((entry) => {
+        if (!groups.has(entry.date)) groups.set(entry.date, []);
+        groups.get(entry.date).push(entry);
+      });
+      return [...groups.keys()].sort((a, b) => b.localeCompare(a)).map((date) => ({
+        date,
+        entries: groups.get(date),
+        total: groups.get(date).reduce((sum, entry) => sum + (Number(entry.calories) || 0), 0),
+      }));
+    }
     function previousWeighIn(date) {
       return [...state.weights].filter((entry) => entry.date < date).sort((a, b) => b.date.localeCompare(a.date))[0];
     }
@@ -637,17 +741,21 @@
       const custom = new Map(state.customWorkouts.map((entry) => [entry.id, entry]));
       (incoming.customWorkouts || []).forEach((entry) => { if (entry?.id) custom.set(entry.id, { ...custom.get(entry.id), ...entry }); });
       state.customWorkouts = [...custom.values()];
+      const foods = new Map((state.foods || []).map((entry) => [entry.id, entry]));
+      (incoming.foods || []).forEach((entry) => { if (entry?.id && !foods.has(entry.id)) foods.set(entry.id, entry); });
+      state.foods = [...foods.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
       if (incoming.name && !state.name) state.name = incoming.name;
       if (incoming.unit) state.unit = incoming.unit;
       if (incoming.gear) state.gear = incoming.gear;
       if (incoming.plan?.length === 7) state.plan = incoming.plan;
+      if (Number.isFinite(Number(incoming.calorieGoal))) state.calorieGoal = Number(incoming.calorieGoal);
     }
     async function exportBackup() {
       const payload = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), state }, null, 2);
-      const file = new File([payload], `healthfit-backup-${todayKey()}.json`, { type: "application/json" });
+      const file = new File([payload], `${FOR_HER ? "herfit" : "healthfit"}-backup-${todayKey()}.json`, { type: "application/json" });
       try {
         if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: "HealthFit backup" });
+          await navigator.share({ files: [file], title: `${APP_NAME} backup` });
           return;
         }
       } catch (_) {}
@@ -729,7 +837,7 @@
     function header() {
       return `<header class="topbar">
         <div>
-          <div class="brand">Home<span>Fit</span></div>
+          <div class="brand">${FOR_HER ? "Her<span>Fit</span>" : "Home<span>Fit</span>"}</div>
           <div class="note">Saved on this ${storagePlace()} only</div>
         </div>
         <nav>${TABS.map(([id, label]) => `<button data-act="tab" data-id="${id}" class="${ui.tab === id ? "on" : ""}">${label}</button>`).join("")}</nav>
@@ -789,12 +897,22 @@
               <p class="hint">Changing equipment loads a matching week. Logs stay.</p>
             </div>
           </div>
+          ${FOR_HER ? `<div class="card">
+            <h3>Quick food</h3>
+            <p class="muted">Today: ${caloriesOn()} cal${state.calorieGoal ? ` of ${state.calorieGoal}` : ""}.</p>
+            <div class="field"><input id="quick-food-name" placeholder="Yogurt, coffee, lunch…" /></div>
+            <div class="row">
+              <input class="grow" id="quick-food-cal" placeholder="Calories" inputmode="numeric" />
+              <button data-act="save-food">Add</button>
+            </div>
+            <div class="actions"><button class="btn-ghost" data-act="tab" data-id="food">Open food log</button></div>
+          </div>` : ""}
         </div>`;
     }
 
     function planPage() {
       const weekday = new Date().getDay();
-      return `<div class="kicker">Week</div><h1>15 minutes a day</h1>
+      return `<div class="kicker">Week</div><h1>${FOR_HER ? "Strength, walks, and light cardio" : "15 minutes a day"}</h1>
         ${sortedPlan().map((day) => {
           const w = findWorkout(day.workoutId);
           return `<button class="plan-day ${day.weekday === weekday ? "plan-today" : ""}" data-act="open" data-id="${w?.id || ""}">
@@ -809,17 +927,17 @@
     function searchPage() {
       const q = ui.query.trim().toLowerCase();
       const results = allWorkouts().filter((w) => {
-        if (w.id === "you1-core-finisher") return false;
+        if (String(w.id).endsWith("-finisher")) return false;
         const text = `${w.title} ${w.creatorLabel} ${w.tags} ${w.summary}`.toLowerCase();
         return (ui.creator === "all" || w.creatorId === ui.creator)
           && (ui.focus === "all" || w.focus === ui.focus)
           && matchesGear(w, ui.gearFilter)
           && (!q || text.includes(q));
       });
-      const youtubeQ = ui.query.trim() || CREATORS.find((c) => c.id === ui.creator)?.search || "15 minute home workout for men";
+      const youtubeQ = ui.query.trim() || CREATORS.find((c) => c.id === ui.creator)?.search || (FOR_HER ? "15 minute walking pilates workout for women at home" : "15 minute home workout for men");
       return `<div class="kicker">Library</div><h1>Home workouts</h1>
-        <p class="muted">Strength, calisthenics, and short HIIT. For men and women training at home.</p>
-        <input id="search-q" value="${esc(ui.query)}" placeholder="Search abs, legs, dumbbells…" />
+        <p class="muted">${FOR_HER ? "Women-focused strength, pilates, walking, and light cardio. About 15 minutes." : "Strength, calisthenics, and short HIIT. For men and women training at home."}</p>
+        <input id="search-q" value="${esc(ui.query)}" placeholder="${FOR_HER ? "Search walk, glutes, pilates…" : "Search abs, legs, dumbbells…"}" />
         ${chips([["all","All gear"],["bodyweight","Bodyweight"],["dumbbells","Light dumbbells"]], ui.gearFilter, "gear-filter")}
         ${chips([["all","All creators"], ...CREATORS.map((c) => [c.id, c.name])], ui.creator, "creator")}
         ${chips(FOCUS_OPTIONS, ui.focus, "focus")}
@@ -889,12 +1007,46 @@
         </div>`;
     }
 
+    function foodPage() {
+      const today = todayKey();
+      const todayFoods = foodsOn(today);
+      const total = caloriesOn(today);
+      const goal = Number(state.calorieGoal) || 0;
+      const left = goal ? goal - total : null;
+      const days = foodDayGroups();
+      return `<div class="kicker">Eat</div><h1>Food log</h1>
+        <div class="stats stats-2">
+          <div class="stat"><span>Today</span><b>${total} cal</b></div>
+          <div class="stat"><span>${goal ? (left >= 0 ? "Left" : "Over") : "Items"}</span><b>${goal ? Math.abs(left) : todayFoods.length}</b></div>
+        </div>
+        <div class="card">
+          <h3>Add food</h3>
+          <p class="muted">Type the food and calories from the package or your best guess.</p>
+          <div class="field"><label>Food</label><input id="food-name" placeholder="Chicken, apple, latte…" /></div>
+          <div class="field"><label>Calories</label><input id="food-cal" inputmode="numeric" placeholder="250" /></div>
+          <div class="actions"><button data-act="save-food">Add to today</button></div>
+        </div>
+        <div class="card">
+          <label>Daily calorie goal (optional)</label>
+          <div class="row">
+            <input class="grow" id="cal-goal" inputmode="numeric" value="${goal || ""}" placeholder="1800" />
+            <button class="btn-sec" data-act="save-cal-goal">Save goal</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Today</h3>
+          ${todayFoods.length ? todayFoods.map((entry) => `<div class="list-item"><div><h3>${esc(entry.name)}</h3></div><div class="row" style="margin:0"><span>${entry.calories} cal</span><button class="btn-ghost" data-act="delete-food" data-id="${entry.id}">Remove</button></div></div>`).join("") : `<p class="empty">No food logged yet today.</p>`}
+        </div>
+        ${days.filter((day) => day.date !== today).length ? `<div class="card"><h3>Earlier</h3>${days.filter((day) => day.date !== today).slice(0, 14).map((day) => `<div class="week-block"><div class="week-head"><h3>${esc(day.date)}</h3><div>${day.total} cal</div></div>${day.entries.map((entry) => `<div class="list-item"><div>${esc(entry.name)}</div><div>${entry.calories} cal</div></div>`).join("")}</div>`).join("")}</div>` : ""}
+        <p class="hint">Food stays on this ${storagePlace()}. Not medical advice.</p>`;
+    }
+
     function logPage() {
       const place = storagePlace();
       return `<div class="kicker">Progress</div><h1>Workout log</h1>
         <div class="card">
           <h3>Stays on this ${place}</h3>
-          <p class="muted">Your name, weight, plan, and workout history are saved only in this browser on this ${place}. HealthFit does not upload them to GitHub or copy them to your computer.</p>
+          <p class="muted">Your name, weight, food, plan, and workout history are saved only in this browser on this ${place}. ${APP_NAME} does not upload them to GitHub or copy them to another phone.</p>
           <p class="hint">On iPhone, use Share → Add to Home Screen so Safari is less likely to erase the log. You can also keep a backup file on this phone.</p>
           <div class="actions">
             <button class="btn-sec" data-act="backup-save">Save backup on this phone</button>
@@ -907,14 +1059,14 @@
           <input id="name-input" value="${esc(state.name)}" placeholder="Optional" />
           <div class="actions"><button class="btn-sec" data-act="save-name">Save name</button></div>
           <div class="field"><label>Equipment</label>${chips(GEAR_OPTIONS, state.gear, "gear")}</div>
-          <p class="hint">Light dumbbells are about 10–25 lb. Changing equipment resets the weekly plan, not your history.</p>
+          <p class="hint">${FOR_HER ? "Light dumbbells are about 3–12 lb." : "Light dumbbells are about 10–25 lb."} Changing equipment resets the weekly plan, not your history.</p>
         </div>
         ${state.sessions.length ? state.sessions.map((s) => `<div class="card"><div class="head"><h3>${esc(s.title)}</h3><div class="done">${s.minutes} min</div></div><p class="muted">${esc(s.date)} · effort ${s.effort}/5</p>${s.notes ? `<p class="hint">${esc(s.notes)}</p>` : ""}</div>`).join("") : `<p class="empty">Complete a workout to see it here.</p>`}
         <p class="hint">Home fitness tracker, not medical advice. Stop if anything hurts.</p>`;
     }
 
     function playerHtml(workout) {
-      const extra = workout.id === "you1-abs-video" ? findWorkout("you1-core-finisher") : null;
+      const extra = workout.finisherId ? findWorkout(workout.finisherId) : null;
       const search = workout.searchQuery || `${workout.creatorLabel} ${workout.title}`;
       const yt = workout.youtubeId ? youtubeWatchUrl(workout.youtubeId) : youtubeSearchUrl(search);
       return `<div class="overlay"><div class="overlay-inner">
@@ -937,7 +1089,7 @@
           <h3>Mark complete</h3>
           <p class="muted">How hard was it?</p>
           <div class="effort">${[1,2,3,4,5].map((n) => `<button data-act="effort" data-n="${n}" class="${ui.effort === n ? "on" : ""}">${n}</button>`).join("")}</div>
-          <textarea id="notes" placeholder="Knee push-ups, felt good…">${esc(ui.notes)}</textarea>
+          <textarea id="notes" placeholder="${FOR_HER ? "Felt good, walked the last minute…" : "Knee push-ups, felt good…"}">${esc(ui.notes)}</textarea>
           <div class="actions"><button data-act="complete">Save workout</button></div>
         </div>
       </div></div>`;
@@ -966,7 +1118,7 @@
           </div>
           <div class="field"><label>Paste the YouTube link</label><input id="swap-url" placeholder="https://youtube.com/watch?v=…" /></div>
           <div class="actions"><button data-act="swap-paste">Use this video</button></div>
-          ${similar.length ? `<h3 style="margin-top:18px">Already in HomeFit</h3><div class="stack">${similar.map((w) => `<button class="btn-sec" data-act="swap-pick" data-id="${w.id}">${esc(w.title)} · ${w.minutes} min</button>`).join("")}</div>` : ""}
+          ${similar.length ? `<h3 style="margin-top:18px">Already in ${APP_NAME}</h3><div class="stack">${similar.map((w) => `<button class="btn-sec" data-act="swap-pick" data-id="${w.id}">${esc(w.title)} · ${w.minutes} min</button>`).join("")}</div>` : ""}
           <div class="actions"><button class="btn-ghost" data-act="close-sheet">Keep this one</button></div>
         </div>`;
     }
@@ -980,8 +1132,8 @@
 
     function render() {
       persist();
-      const pages = { today: todayPage, plan: planPage, search: searchPage, weight: weightPage, more: logPage };
-      root.innerHTML = `${header()}<div class="page">${pages[ui.tab]()}</div>${ui.active ? playerHtml(ui.active) : ""}${sheetHtml()}`;
+      const pages = { today: todayPage, plan: planPage, search: searchPage, food: foodPage, weight: weightPage, more: logPage };
+      root.innerHTML = `${header()}<div class="page">${(pages[ui.tab] || todayPage)()}</div>${ui.active ? playerHtml(ui.active) : ""}${sheetHtml()}`;
     }
 
     function saveWeight(raw, note) {
@@ -991,6 +1143,14 @@
       const date = todayKey();
       state.weights = [{ id: uid(), date, pounds, note: (note || "").trim(), savedAt: Date.now() }, ...state.weights.filter((w) => w.date !== date)].sort((a, b) => b.date.localeCompare(a.date));
       ui.tab = "weight";
+      render();
+    }
+
+    function saveFood() {
+      const name = (document.getElementById("food-name") || document.getElementById("quick-food-name"))?.value.trim();
+      const cal = Number((document.getElementById("food-cal") || document.getElementById("quick-food-cal"))?.value);
+      if (!name || !Number.isFinite(cal) || cal < 0) return;
+      state.foods = [{ id: uid(), date: todayKey(), name, calories: Math.round(cal), savedAt: Date.now() }, ...state.foods];
       render();
     }
 
@@ -1056,6 +1216,18 @@
       if (act === "backup-pick") { document.getElementById("restore-file")?.click(); return; }
       if (act === "save-quick") { saveWeight(document.getElementById("quick-weight")?.value); return; }
       if (act === "save-weight") { saveWeight(document.getElementById("w-value")?.value, document.getElementById("w-note")?.value); return; }
+      if (act === "save-food") { saveFood(); return; }
+      if (act === "save-cal-goal") {
+        const n = Number(document.getElementById("cal-goal")?.value);
+        state.calorieGoal = Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+        render();
+        return;
+      }
+      if (act === "delete-food") {
+        state.foods = (state.foods || []).filter((entry) => entry.id !== id);
+        render();
+        return;
+      }
       if (act === "save-yt") {
         const youtubeId = parseYoutubeId(document.getElementById("save-url")?.value);
         if (!youtubeId) { alert("Paste a full YouTube URL first."); return; }
@@ -1096,7 +1268,7 @@
         return;
       }
       if (act === "complete" && ui.active) {
-        const extra = ui.active.id === "you1-abs-video" ? findWorkout("you1-core-finisher") : null;
+        const extra = ui.active.finisherId ? findWorkout(ui.active.finisherId) : null;
         state.sessions = [{ id: uid(), date: todayKey(), workoutId: ui.active.id, title: ui.active.title, minutes: ui.active.minutes + (extra?.minutes || 0), effort: ui.effort, notes: ui.notes.trim() }, ...state.sessions];
         stopTimer();
         ui.active = null;
@@ -1155,6 +1327,7 @@
       if (event.key !== "Enter") return;
       if (event.target.id === "quick-weight") { event.preventDefault(); saveWeight(event.target.value); }
       if (event.target.id === "w-value" || event.target.id === "w-note") { event.preventDefault(); saveWeight(document.getElementById("w-value")?.value, document.getElementById("w-note")?.value); }
+      if (event.target.id === "food-name" || event.target.id === "food-cal" || event.target.id === "quick-food-name" || event.target.id === "quick-food-cal") { event.preventDefault(); saveFood(); }
       if (event.target.id === "search-q") { event.preventDefault(); ui.query = event.target.value; render(); }
     });
 
